@@ -1,0 +1,30 @@
+[
+  {
+    "product_id": "c1",
+    "name": "아메리카노",
+    "base_price": 3000,
+    "is_available": true,
+    "product_type": "coffee"
+  },
+  {
+    "product_id": "c2",
+    "name": "라떼",
+    "base_price": 3500,
+    "is_available": true,
+    "product_type": "coffee"
+  },
+  {
+    "product_id": "c3",
+    "name": "카푸치노",
+    "base_price": 3500,
+    "is_available": true,
+    "product_type": "coffee"
+  },
+  {
+    "product_id": "g1",
+    "name": "영양구미",
+    "base_price": 2000,
+    "is_available": true,
+    "product_type": "gummy"
+  }
+]
