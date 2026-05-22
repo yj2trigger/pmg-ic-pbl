@@ -116,6 +116,12 @@ class KioskController:
                 p.is_available = flag
         self._save_products()
 
+    def admin_add_cash(self, denomination: int, count: int) -> None:
+        self.change_reserve.add_cash(denomination, count)
+        self.data_manager.save_change_reserve(
+            {str(k): v for k, v in self.change_reserve.reserve.items()}
+        )
+
     def admin_change_password(self, new_pw: str) -> None:
         self.admin_config["password"] = new_pw
         self.data_manager.save_admin_config(self.admin_config)

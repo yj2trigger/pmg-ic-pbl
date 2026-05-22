@@ -9,14 +9,14 @@
   {
     "product_id": "c2",
     "name": "라떼",
-    "base_price": 3500,
+    "base_price": 3000,
     "is_available": true,
     "product_type": "coffee"
   },
   {
     "product_id": "c3",
     "name": "카푸치노",
-    "base_price": 3500,
+    "base_price": 3000,
     "is_available": true,
     "product_type": "coffee"
   },

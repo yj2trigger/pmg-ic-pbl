@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./gradlew clean *)",
+      "Bash(ls \"C:\\\\Users\\\\rexro\\\\.gradle\\\\.tmp\\\\\" 2>&1 | grep classpath | head -5)",
+      "Read(//c/Users/rexro/.gradle/**)",
+      "Bash(javap -verbose \"build/classes/java/test/map/service/user/ServiceUserApplicationTests.class\")",
+      "Bash(powershell -command \"[System.Text.Encoding]::Default.CodePage; chcp\")",
+      "Bash(./gradlew --stop)",
+      "Bash(java -XshowSettings:all -version)",
+      "Bash(./gradlew test *)",
+      "Read(//c/Users/rexro/.claude/**)"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\rexro\\.claude"
+    ]
+  }
+}

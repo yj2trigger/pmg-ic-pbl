@@ -316,8 +316,12 @@ class CLIView:
             elif choice == "3":
                 self._admin_set_price()
             elif choice == "4":
-                total = self.controller.change_reserve.get_total()
+                reserve = self.controller.change_reserve
+                total   = reserve.get_total()
                 print(f"현금 보유량: {total:,}원")
+                for denom in sorted(reserve.reserve.keys(), reverse=True):
+                    count = reserve.reserve[denom]
+                    print(f"  {denom:,}원권: {count}장")
             elif choice == "5":
                 new_pw = input("새 비밀번호 (빈 입력=뒤로): ").strip()
                 if not new_pw:

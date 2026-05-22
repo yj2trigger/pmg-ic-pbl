@@ -1,6 +1,8 @@
-import sys, os
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import sys
 import os
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from app.data_manager import DataManager
 from app.product import Coffee, Gummy, CustomOption, OptionGroup
 from app.ingredient import Ingredient
@@ -9,7 +11,11 @@ from app.payment import ChangeReserve
 from app.kiosk_controller import KioskController
 from app.cli_view import CLIView
 
-DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
+# PyInstaller로 빌드된 실행 파일에서는 실행 파일 옆의 data/ 폴더를 사용
+if getattr(sys, "frozen", False):
+    DATA_DIR = os.path.join(os.path.dirname(sys.executable), "data")
+else:
+    DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 
 # ── 기본 데이터 정의 ────────────────────────────────────────────
 DEFAULT_PRODUCTS = [
@@ -33,7 +39,6 @@ DEFAULT_INGREDIENTS = [
 ]
 
 DEFAULT_OPTIONS = [
-    # 커피 공통
     {"group_id": "size", "name": "크기", "active_for": ["coffee"], "options": [
         {"option_id": "size_s", "name": "Small",  "extra_price": 0,   "required_ingredients_dic": {"bean": 1}},
         {"option_id": "size_m", "name": "Medium", "extra_price": 300, "required_ingredients_dic": {"bean": 2}},
@@ -56,7 +61,6 @@ DEFAULT_OPTIONS = [
         {"option_id": "cream_yes", "name": "있음", "extra_price": 200, "required_ingredients_dic": {"cream": 1, "milk": 1}},
         {"option_id": "cream_no",  "name": "없음", "extra_price": 0,   "required_ingredients_dic": {}},
     ]},
-    # 구미
     {"group_id": "flavor", "name": "맛", "active_for": ["gummy"], "options": [
         {"option_id": "flv_straw", "name": "딸기", "extra_price": 0,   "required_ingredients_dic": {"g_base": 1}},
         {"option_id": "flv_grape", "name": "포도", "extra_price": 0,   "required_ingredients_dic": {"g_base": 1}},
@@ -124,38 +128,55 @@ def _build_change_reserve(data: dict) -> ChangeReserve:
     return ChangeReserve({int(k): v for k, v in data.items()})
 
 
-# ── 진입점 ──────────────────────────────────────────────────────
-def main():
+def _build_controller() -> KioskController:
     dm = DataManager(DATA_DIR)
 
-    # 파일 없으면 기본값으로 초기화
-    if not dm.load_products():
+    products_raw = dm.load_products()
+    if not products_raw:
         dm.save_products(DEFAULT_PRODUCTS)
-    if not dm.load_ingredients():
+        products_raw = DEFAULT_PRODUCTS
+
+    ingredients_raw = dm.load_ingredients()
+    if not ingredients_raw:
         dm.save_ingredients(DEFAULT_INGREDIENTS)
-    if not dm.load_options():
+        ingredients_raw = DEFAULT_INGREDIENTS
+
+    options_raw = dm.load_options()
+    if not options_raw:
         dm.save_options(DEFAULT_OPTIONS)
-    if not dm.load_change_reserve():
+        options_raw = DEFAULT_OPTIONS
+
+    change_raw = dm.load_change_reserve()
+    if not change_raw:
         dm.save_change_reserve(DEFAULT_CHANGE_RESERVE)
-    if not dm.load_admin_config():
+        change_raw = DEFAULT_CHANGE_RESERVE
+
+    admin_config = dm.load_admin_config()
+    if not admin_config:
         dm.save_admin_config(DEFAULT_ADMIN_CONFIG)
+        admin_config = DEFAULT_ADMIN_CONFIG
 
-    products      = _build_products(dm.load_products())
-    ingredients   = _build_ingredients(dm.load_ingredients())
-    option_groups = _build_option_groups(dm.load_options())
-    change_reserve = _build_change_reserve(dm.load_change_reserve())
-    admin_config  = dm.load_admin_config()
-
-    controller = KioskController(
-        products=products,
-        ingredients=ingredients,
-        option_groups=option_groups,
+    return KioskController(
+        products=_build_products(products_raw),
+        ingredients=_build_ingredients(ingredients_raw),
+        option_groups=_build_option_groups(options_raw),
         cart=Cart(),
-        change_reserve=change_reserve,
+        change_reserve=_build_change_reserve(change_raw),
         admin_config=admin_config,
         data_manager=dm,
     )
-    CLIView(controller).run()
+
+
+# ── 진입점 ──────────────────────────────────────────────────────
+def main() -> None:
+    controller = _build_controller()
+
+    # 빌드된 실행 파일은 항상 GUI 모드, 소스 실행 시 --gui 플래그로 선택
+    if "--gui" in sys.argv or getattr(sys, "frozen", False):
+        from app.gui.app import run_gui
+        sys.exit(run_gui(controller))
+    else:
+        CLIView(controller).run()
 
 
 if __name__ == "__main__":
