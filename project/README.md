@@ -1,51 +1,71 @@
 # EDK — Erica Drug King
 
-증상을 입력하면 적합한 OTC 의약품을 추천하는 키오스크 애플리케이션입니다.  
-PyQt6 GUI 또는 CLI 모드로 실행할 수 있으며, PyInstaller로 단독 실행 파일로 빌드할 수 있습니다.
+증상 기반 OTC(일반의약품) 키오스크 시스템입니다.  
+사용자가 증상을 선택하면 적합한 의약품을 추천하고, 현금 결제까지 처리합니다.
 
 ---
 
-## 요구사항
+## 목차
+
+1. [사전 요구사항](#사전-요구사항)
+2. [설치](#설치)
+3. [실행](#실행)
+4. [테스트](#테스트)
+5. [빌드](#빌드)
+6. [디렉터리 구조](#디렉터리-구조)
+7. [화면 흐름](#화면-흐름)
+8. [관리자 메뉴](#관리자-메뉴)
+
+---
+
+## 사전 요구사항
 
 | 항목 | 버전 |
 |------|------|
 | Python | 3.10 이상 |
-| OS | Windows 10/11, macOS 12이상 |
+| pip | 최신 권장 |
+| 오디오 드라이버 | TTS 사용 시 필요 |
 
 ---
 
 ## 설치
 
 ```bash
-# project/ 디렉토리에서 실행
-cd project
+# 1. 저장소 클론
+git clone https://github.com/yj2trigger/pmg-ic-pbl.git
+cd pmg-ic-pbl/project
 
-# 의존성 설치 (실행 환경)
-pip install -r requirements.txt
+# 2. 가상환경 생성 및 활성화
+python -m venv .venv
+# Windows
+.venv\Scripts\activate
+# macOS / Linux
+source .venv/bin/activate
 
-# 또는 pyproject.toml 사용 (dev 포함)
-pip install -e \".[dev]\"
+# 3. 의존성 설치 (런타임)
+pip install .
+
+# 4. 개발용 의존성 추가 설치 (테스트 포함)
+pip install .[dev]
 ```
 
 ---
 
 ## 실행
 
-### CLI 모드
+### GUI 모드 (키오스크)
 
 ```bash
 cd project
-python src/app/main.py
+python -m src.main
 ```
 
-### GUI 모드
+### CLI 모드 (관리자 도구)
 
 ```bash
 cd project
-python src/app/main.py --gui
+python -m src.main --cli
 ```
-
-> **카리우스 한국어 TTS** `edge-tts`를 사용합니다. 인터넷 연결이 없으면 음성 기능이 작동하지 않습니다 (나머지 기능은 정상 작동).
 
 ---
 
@@ -56,84 +76,135 @@ cd project
 pytest
 ```
 
-`pyproject.toml`의 `[tool.pytest.ini_options]`에서 `testpaths`과 `pythonpath`을 자동으로 해서합니다.  
-GUI 테스트는 `QT_QPA_PLATFORM=offscreen`으로 디스플레\ 없이 실행됩니다.
+상세 출력:
+
+```bash
+pytest -v
+```
+
+특정 파일만 실행:
+
+```bash
+pytest tests/test_cart.py -v
+```
+
+> **참고**: GUI 테스트(`test_gui_*.py`)는 `pytest-qt`가 필요합니다.  
+> TTS / pygame 관련 모듈은 테스트 시 자동으로 mock 처리됩니다.
 
 ---
 
-## 빌드 (단독 실행 파일)
-
-### Windows
-
-```powershell
-cd project
-.\\build_windows.ps1
-# 출력: dist\\kiosk.exe
-```
-
-### macOS
+## 빌드
 
 ```bash
 cd project
-bash build_mac.sh
-# 출력: dist/kiosk
+pip install build
+python -m build
 ```
+
+`dist/` 디렉터리에 `.whl` 및 `.tar.gz` 파일이 생성됩니다.
 
 ---
 
-## 디렉토리 구조
+## 디렉터리 구조
 
 ```
 project/
 ├── src/
-│   └── app/
-│       ├── main.py              # 진입점 (CLI / GUI 선택)
-│       ├── drug_controller.py   # 증상→의약품 조회
-│       ├── medicine.py          # Medicine 도메인
-│       ├── symptom.py           # Symptom / SymptomGroup
-│       ├── cart.py              # OrderItem, Cart
-│       ├── payment.py           # CashPayment, CardPayment, ChangeReserve
-│       ├── data_manager.py      # JSON 읽기/쓰기
-│       ├── cli_view.py          # CLI 인터페이스
-│       ├── stats.py             # 판매 통계
-│       ├── exceptions.py        # 커스텀 예외
-│       ├── data/                # JSON 데이터 (medicines.json 등)
-│       └── gui/
-│           ├── app.py             # QApplication 진입점
-│           ├── main_window.py     # KioskWindow + 네비게이션 API
-│           ├── voice_service.py   # edge-tts TTS
-│           └── screens/           # 화면별 QWidget
+│   ├── main.py                  # 진입점
+│   ├── controller/
+│   │   └── drug_controller.py   # 비즈니스 로직
+│   ├── model/
+│   │   ├── medicine.py
+│   │   ├── symptom.py
+│   │   ├── cart.py
+│   │   ├── order_item.py
+│   │   └── cash_payment.py
+│   ├── view/
+│   │   ├── gui/
+│   │   │   ├── kiosk_window.py  # 메인 윈도우
+│   │   │   └── screens/         # 각 화면 위젯
+│   │   └── cli/
+│   │       └── cli_view.py      # CLI 관리자 뷰
+│   ├── data/
+│   │   ├── medicines.json
+│   │   ├── symptoms.json
+│   │   └── admin_config.json
+│   └── service/
+│       └── voice_service.py     # edge-tts + pygame TTS
 ├── tests/
-├── pyproject.toml
-├── requirements.txt
-├── build_windows.ps1
-└── build_mac.sh
+│   ├── conftest.py
+│   ├── test_cart.py
+│   ├── test_gui_app.py
+│   ├── test_gui_screens.py
+│   ├── test_admin_cash.py
+│   └── test_edk_integration.py
+└── pyproject.toml
 ```
 
 ---
 
-## 주요 화면 흐름
+## 화면 흐름
 
 ```
 [대기 화면]
-    ↓ 터치
-[증상 선택]  →  응급 증상이면 [응급 경고 (119)]
-    ↓
-[의약품 목록]  →  [의약품 상세] → [장바구니]
-    ↓
-[결제 수단 선택]  →  현금 / 카드
-    ↓
-[영수증]  →  [대기 화면]
+    │
+    ▼
+[증상 선택 화면] ──────────────────────┐
+    │                                  │
+    ▼                                  │
+[의약품 목록 화면]   [응급 증상 화면]  │
+    │                    ▲             │
+    ▼                    │             │
+[의약품 상세 화면] ──────┘             │
+    │                                  │
+    ▼                                  │
+[장바구니 화면] ◄──────────────────────┘
+    │
+    ▼
+[결제 수단 선택]
+    │
+    ▼
+[현금 결제 화면]
+    │
+    ▼
+[영수증 화면]
+    │
+    ▼
+[대기 화면]
+```
+
+관리자 접근:
+
+```
+[대기 화면] → 관리자 버튼 → [관리자 인증] → [관리자 메뉴]
 ```
 
 ---
 
 ## 관리자 메뉴
 
-증상 선택 화면 하단의 **관리자** 버튼 또는 CLI에서 메뉴 4번으로 접근합니다.
+### GUI 관리자 메뉴
 
 | 기능 | 설명 |
 |------|------|
 | 의약품 ON/OFF | 판매 중지 / 재개 |
 | 가격 변경 | 선택 의약품 판매가 변경 |
-| 현금 보유량 | 권종별 \uc7
+| 현금 보유량 | 권종별 잔액 확인 및 조정 |
+| 비밀번호 변경 | 관리자 PIN 변경 |
+
+### CLI 관리자 메뉴
+
+CLI 모드(`--cli`)로 실행하면 터미널에서 관리자 기능을 직접 사용할 수 있습니다.
+
+```
+관리자 메뉴
+1. 의약품 목록 보기
+2. 의약품 ON/OFF 전환
+3. 가격 변경
+4. 현금 보유량 확인
+5. 현금 보유량 변경
+6. 비밀번호 변경
+0. 종료
+```
+
+> 기본 관리자 비밀번호는 `data/admin_config.json`에서 설정합니다.
