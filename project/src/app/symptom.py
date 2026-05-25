@@ -21,4 +21,5 @@ class SymptomGroup:
         return [s for s in self._index.values() if s.is_emergency]
 
     def __len__(self) -> int:
+        """전체 증상 수 반환"""
         return len(self._index)
