@@ -2,7 +2,7 @@ name: Gemini PR Review
 
 on:
   pull_request:
-    types: [opened, synchronize]
+    types: [opened, synchronize, reopened]
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -42,9 +42,7 @@ jobs:
             -H "Content-Type: application/json" \
             -d "$PAYLOAD")
 
-          echo "API response (truncated): $(echo "$RESPONSE" | head -c 300)"
-
           REVIEW=$(echo "$RESPONSE" | jq -r '.candidates[0].content.parts[0].text // "\(.error.message // "리뷰 생성 실패")"')
 
-          BODY=$(printf "## Gemini 코드 리뷰\n\n%s" "$REVIEW")
+          BODY=$(printf "## Gemini 코드 마뷰\n\n%s" "$REVIEW")
           gh api repos/${REPO}/issues/${PR_NUMBER}/comments -f body="$BODY"
