@@ -30,7 +30,6 @@ class CashPaymentScreen(QWidget):
         self._status_label.setFont(QFont("Malgun Gothic", 17))
         self._status_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        # Denomination buttons
         denom_grid = QGridLayout()
         denom_grid.setSpacing(12)
         denoms = sorted(ChangeReserve.DENOMINATIONS, reverse=True)
@@ -60,46 +59,52 @@ class CashPaymentScreen(QWidget):
         layout.addLayout(btn_row)
 
     def refresh(self) -> None:
-        ctrl = self._window.controller
-        self._snapshot = list(ctrl.cart.items)
-        self._final_amount = ctrl.get_final_amount()
+        self._snapshot = list(self._window.cart.items)
+        self._final_amount = self._window.cart.get_subtotal()
         self._update_status()
 
     def _update_status(self) -> None:
-        ctrl = self._window.controller
-        pmt = ctrl._active_payment
+        pmt = self._window._active_payment
         inserted = pmt.inserted_amount if pmt else 0
         remaining = max(0, self._final_amount - inserted)
         self._status_label.setText(
-            f"결제: {self._final_amount:,}원  │  투입: {inserted:,}원  │  잔액: {remaining:,}원"
+            f"결제: {self._final_amount:,}원 │ 투입: {inserted:,}원 │ 잔액: {remaining:,}원"
         )
-        can_pay = ctrl.can_complete_payment() if pmt else False
+        can_pay = pmt.can_complete() if pmt else False
         self._btn_complete.setEnabled(can_pay)
         if can_pay:
             self._btn_complete.setStyleSheet("color: #a6e3a1; border-color: #a6e3a1;")
 
     def _insert_cash(self, denomination: int) -> None:
-        self._window.controller.insert_cash(denomination)
+        pmt = self._window._active_payment
+        if pmt:
+            pmt.insert(denomination)
         self._update_status()
 
     def _complete(self) -> None:
-        ctrl = self._window.controller
+        pmt = self._window._active_payment
         try:
-            change_result = ctrl.process_cash_payment()
+            change_result = pmt.process()
+            self._window.cart.clear({})
+            self._window._active_payment = None
             self._window.go_to_receipt(
                 self._snapshot, self._final_amount, "현금", change_result
             )
         except InsufficientChangeException:
-            refund = ctrl.cancel_payment()
+            refund = pmt.inserted_amount
+            self._window._active_payment = None
             QMessageBox.warning(
-                self, "잔돈 부족",
+                self,
+                "잔돈 부족",
                 f"잔돈이 부족하여 결제를 완료할 수 없습니다.\n"
                 f"투입 금액 {refund:,}원을 반환합니다.",
             )
             self._window.go_to_payment_method()
 
     def _cancel(self) -> None:
-        refund = self._window.controller.cancel_payment()
+        pmt = self._window._active_payment
+        refund = pmt.inserted_amount if pmt else 0
+        self._window._active_payment = None
         if refund > 0:
             QMessageBox.information(self, "취소", f"{refund:,}원을 반환합니다.")
         self._window.go_to_payment_method()
