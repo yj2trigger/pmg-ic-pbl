@@ -4,6 +4,9 @@ on:
   pull_request:
     types: [opened, synchronize]
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   review:
     runs-on: ubuntu-latest
@@ -19,6 +22,7 @@ jobs:
       - name: Get diff
         run: |
           git diff ${{ github.event.pull_request.base.sha }}...${{ github.event.pull_request.head.sha }} > diff.txt
+          echo "diff size: $(wc -c < diff.txt) bytes"
 
       - name: Review with Gemini
         env:
@@ -34,11 +38,13 @@ jobs:
             '{"contents":[{"parts":[{"text":$text}]}],"generationConfig":{"maxOutputTokens":2048}}')
 
           RESPONSE=$(curl -s \
-            "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}" \
+            "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}" \
             -H "Content-Type: application/json" \
             -d "$PAYLOAD")
 
-          REVIEW=$(echo "$RESPONSE" | jq -r '.candidates[0].content.parts[0].text // "리뷰 생성 실패"')
+          echo "API response (truncated): $(echo "$RESPONSE" | head -c 300)"
+
+          REVIEW=$(echo "$RESPONSE" | jq -r '.candidates[0].content.parts[0].text // "\(.error.message // "리뷰 생성 실패")"')
 
           BODY=$(printf "## Gemini 코드 리뷰\n\n%s" "$REVIEW")
           gh api repos/${REPO}/issues/${PR_NUMBER}/comments -f body="$BODY"
