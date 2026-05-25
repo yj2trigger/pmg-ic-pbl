@@ -6,6 +6,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from app.data_manager import DataManager
 from app.drug_controller import DrugController
 from app.cart import Cart
+from app.password_utils import hash_password
 from app.payment import ChangeReserve
 
 if getattr(sys, "frozen", False):
@@ -14,7 +15,6 @@ else:
     DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 
 DEFAULT_CHANGE_RESERVE = {"50000": 5, "10000": 10, "5000": 20, "1000": 50}
-DEFAULT_ADMIN_CONFIG = {"password": "1234"}
 
 
 def _build_app() -> tuple[DrugController, Cart, ChangeReserve]:
@@ -27,7 +27,11 @@ def _build_app() -> tuple[DrugController, Cart, ChangeReserve]:
 
     admin_config = dm.load_admin_config()
     if not admin_config:
-        dm.save_admin_config(DEFAULT_ADMIN_CONFIG)
+        dm.save_admin_config({"password": hash_password("1234")})
+    elif not admin_config.get("password", "").startswith("scrypt$"):
+        # migrate legacy plaintext to hash on first run
+        admin_config["password"] = hash_password(admin_config["password"])
+        dm.save_admin_config(admin_config)
 
     return DrugController(dm), Cart(), ChangeReserve({int(k): v for k, v in change_raw.items()})
 

@@ -45,7 +45,7 @@ class AdminMenuScreen(QWidget):
         self._status_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self._status_label.setStyleSheet("color: #a6e3a1;")
 
-        btn_back = QPushButton("← 관리자 메뉴 종료")
+        btn_back = QPushButton("← 관리자 메뉴 종료")
         btn_back.setMinimumHeight(52)
         btn_back.clicked.connect(lambda: self._window.go_to_symptom_select())
 
@@ -112,9 +112,12 @@ class AdminMenuScreen(QWidget):
             )
 
     def _change_password(self) -> None:
+        from app.password_utils import hash_password
         dlg = _ChangePasswordDialog(self)
         if dlg.exec() == QDialog.DialogCode.Accepted and dlg.result_data:
-            self._window.controller._dm.save_admin_config({"password": dlg.result_data})
+            self._window.controller._dm.save_admin_config(
+                {"password": hash_password(dlg.result_data)}
+            )
             self._status_label.setText("비밀번호가 변경되었습니다.")
 
     def _shutdown(self) -> None:
