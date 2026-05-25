@@ -19,3 +19,6 @@ class SymptomGroup:
 
     def get_emergency_symptoms(self) -> list:
         return [s for s in self._index.values() if s.is_emergency]
+
+    def __len__(self) -> int:
+        return len(self._index)
