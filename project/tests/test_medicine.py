@@ -25,6 +25,10 @@ class TestMedicine(unittest.TestCase):
         self.assertEqual(self.medicine.dosage, "1회 1정, 1일 3회")
         self.assertEqual(self.medicine.caution, "공복 복용 주의")
 
+    def test_symptom_categories_type(self):
+        self.assertIsInstance(self.medicine.symptom_categories, list)
+        self.assertTrue(all(isinstance(c, str) for c in self.medicine.symptom_categories))
+
     def test_symptom_categories_multi(self):
         self.assertIn("headache", self.medicine.symptom_categories)
         self.assertIn("cold", self.medicine.symptom_categories)
@@ -39,7 +43,6 @@ class TestMedicine(unittest.TestCase):
 
     def test_medicine_price(self):
         self.assertEqual(self.medicine.calculate_price(), 3500)
-        self.assertEqual(self.medicine.calculate_price({}), 3500)
 
     def test_medicine_display_name(self):
         self.assertEqual(self.medicine.get_display_name(), "타이레놀 500mg")
@@ -63,6 +66,12 @@ class TestSymptom(unittest.TestCase):
         group = SymptomGroup([s1, s2])
         self.assertIs(group.get_symptom("headache"), s1)
         self.assertIsNone(group.get_symptom("unknown"))
+
+    def test_symptom_group_symptoms_property(self):
+        s1 = Symptom("headache", "두통 / 열")
+        s2 = Symptom("cold", "감기")
+        group = SymptomGroup([s1, s2])
+        self.assertEqual(len(group.symptoms), 2)
 
     def test_symptom_group_emergency(self):
         s1 = Symptom("headache", "두통 / 열", is_emergency=False)

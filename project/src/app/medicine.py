@@ -5,7 +5,7 @@ class Medicine:
         name: str,
         base_price: int,
         is_available: bool,
-        symptom_categories: list,
+        symptom_categories: list[str],
         description: str = "",
         dosage: str = "",
         caution: str = "",
@@ -14,12 +14,12 @@ class Medicine:
         self.name = name
         self.base_price = base_price
         self.is_available = is_available
-        self.symptom_categories = symptom_categories  # list[str]
+        self.symptom_categories: list[str] = symptom_categories
         self.description = description
         self.dosage = dosage
         self.caution = caution
 
-    def calculate_price(self, selected_options: dict | None = None) -> int:
+    def calculate_price(self) -> int:
         return self.base_price
 
     def get_display_name(self) -> str:

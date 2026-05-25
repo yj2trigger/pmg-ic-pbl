@@ -8,13 +8,14 @@ class Symptom:
 
 class SymptomGroup:
     def __init__(self, symptoms: list | None = None):
-        self.symptoms: list[Symptom] = symptoms or []
+        self._index: dict[str, Symptom] = {s.symptom_id: s for s in (symptoms or [])}
+
+    @property
+    def symptoms(self) -> list:
+        return list(self._index.values())
 
     def get_symptom(self, symptom_id: str) -> "Symptom | None":
-        for s in self.symptoms:
-            if s.symptom_id == symptom_id:
-                return s
-        return None
+        return self._index.get(symptom_id)
 
     def get_emergency_symptoms(self) -> list:
-        return [s for s in self.symptoms if s.is_emergency]
+        return [s for s in self._index.values() if s.is_emergency]
