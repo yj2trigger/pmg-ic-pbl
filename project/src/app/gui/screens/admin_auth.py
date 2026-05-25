@@ -4,7 +4,6 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
 
-from app.exceptions import AdminAuthException
 
 class AdminAuthScreen(QWidget):
     def __init__(self, window) -> None:
@@ -38,7 +37,7 @@ class AdminAuthScreen(QWidget):
         btn_confirm = QPushButton("확인")
         btn_cancel.setMinimumHeight(55)
         btn_confirm.setMinimumHeight(55)
-        btn_cancel.clicked.connect(lambda: self._window.go_to_main_menu())
+        btn_cancel.clicked.connect(lambda: self._window.go_to_symptom_select())
         btn_confirm.clicked.connect(self._authenticate)
         btn_row.addWidget(btn_cancel)
         btn_row.addWidget(btn_confirm)
@@ -59,9 +58,9 @@ class AdminAuthScreen(QWidget):
 
     def _authenticate(self) -> None:
         pw = self._pw_input.text().strip()
-        try:
-            self._window.controller.authenticate_admin(pw)
+        config = self._window.controller._dm.load_admin_config() or {}
+        if pw == config.get("password", "1234"):
             self._window.go_to_admin_menu()
-        except AdminAuthException as e:
-            self._error_label.setText(str(e))
+        else:
+            self._error_label.setText("비밀번호가 올바르지 않습니다.")
             self._pw_input.clear()

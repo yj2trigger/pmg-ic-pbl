@@ -23,9 +23,9 @@ class PaymentMethodScreen(QWidget):
         sub.setFont(QFont("Malgun Gothic", 18))
         sub.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        btn_cash = QPushButton("💵  현금 결제")
-        btn_card = QPushButton("💳  카드 결제")
-        btn_cancel = QPushButton("←  취소")
+        btn_cash = QPushButton("\U0001f4b5 현금 결제")
+        btn_card = QPushButton("\U0001f4b3 카드 결제")
+        btn_cancel = QPushButton("← 취소")
         btn_cash.setMinimumHeight(80)
         btn_card.setMinimumHeight(80)
         btn_cancel.setMinimumHeight(48)
@@ -47,5 +47,5 @@ class PaymentMethodScreen(QWidget):
         layout.addStretch()
 
     def refresh(self) -> None:
-        amount = self._window.controller.get_final_amount()
+        amount = self._window.cart.get_subtotal()
         self._amount_label.setText(f"결제 금액: {amount:,}원")

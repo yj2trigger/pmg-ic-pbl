@@ -26,9 +26,8 @@ class AdminMenuScreen(QWidget):
         grid = QGridLayout()
         grid.setSpacing(12)
         operations = [
-            ("재고 보충", self._replenish),
-            ("상품 ON/OFF", self._toggle),
-            ("가격 변경", self._set_price),
+            ("의약품 ON/OFF", self._toggle_medicine),
+            ("의약품 가격 변경", self._set_medicine_price),
             ("현금 보유량 확인", self._show_cash),
             ("현금 추가", self._add_cash),
             ("비밀번호 변경", self._change_password),
@@ -46,9 +45,9 @@ class AdminMenuScreen(QWidget):
         self._status_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self._status_label.setStyleSheet("color: #a6e3a1;")
 
-        btn_back = QPushButton("←  관리자 메뉴 종료")
+        btn_back = QPushButton("← 관리자 메뉴 종료")
         btn_back.setMinimumHeight(52)
-        btn_back.clicked.connect(lambda: self._window.go_to_main_menu())
+        btn_back.clicked.connect(lambda: self._window.go_to_symptom_select())
 
         layout.addWidget(title)
         layout.addLayout(grid)
@@ -60,39 +59,38 @@ class AdminMenuScreen(QWidget):
         self._status_label.setText("")
 
     # ── Operations ──────────────────────────────────────────────
-    def _replenish(self) -> None:
-        ctrl = self._window.controller
-        dlg = _ReplenishDialog(ctrl.ingredients, self)
-        if dlg.exec() == QDialog.DialogCode.Accepted:
-            ing_id, amount = dlg.result_data
-            try:
-                ctrl.admin_replenish(ing_id, amount)
-                ing = ctrl.ingredients[ing_id]
-                self._status_label.setText(
-                    f"보충 완료:  {ing.name}  →  {ing.stock}{ing.unit}"
-                )
-            except Exception as e:
-                QMessageBox.warning(self, "오류", str(e))
 
-    def _toggle(self) -> None:
+    def _toggle_medicine(self) -> None:
         ctrl = self._window.controller
-        dlg = _ToggleDialog(ctrl.products, self)
+        medicines = ctrl._dm.load_medicines()
+        dlg = _ToggleMedicineDialog(medicines, self)
         if dlg.exec() == QDialog.DialogCode.Accepted:
-            pid, flag = dlg.result_data
-            ctrl.admin_toggle_product(pid, flag)
+            mid, flag = dlg.result_data
+            medicines = ctrl._dm.load_medicines()
+            for m in medicines:
+                if m.medicine_id == mid:
+                    m.is_available = flag
+                    break
+            ctrl._dm.save_medicines(medicines)
             state = "판매 중" if flag else "판매 중지"
-            self._status_label.setText(f"변경 완료:  {pid}  →  {state}")
+            self._status_label.setText(f"변경 완료:  {mid}  →  {state}")
 
-    def _set_price(self) -> None:
+    def _set_medicine_price(self) -> None:
         ctrl = self._window.controller
-        dlg = _SetPriceDialog(ctrl.products, self)
+        medicines = ctrl._dm.load_medicines()
+        dlg = _SetMedicinePriceDialog(medicines, self)
         if dlg.exec() == QDialog.DialogCode.Accepted:
-            pid, price = dlg.result_data
-            ctrl.admin_set_price(pid, price)
-            self._status_label.setText(f"가격 변경 완료:  {pid}  →  {price:,}원")
+            mid, price = dlg.result_data
+            medicines = ctrl._dm.load_medicines()
+            for m in medicines:
+                if m.medicine_id == mid:
+                    m.base_price = price
+                    break
+            ctrl._dm.save_medicines(medicines)
+            self._status_label.setText(f"가격 변경 완료:  {mid}  →  {price:,}원")
 
     def _show_cash(self) -> None:
-        reserve = self._window.controller.change_reserve
+        reserve = self._window.change_reserve
         total = reserve.get_total()
         lines = [f"현금 보유량: {total:,}원", ""]
         for denom in sorted(reserve.reserve.keys(), reverse=True):
@@ -103,8 +101,11 @@ class AdminMenuScreen(QWidget):
         dlg = _AddCashDialog(self)
         if dlg.exec() == QDialog.DialogCode.Accepted:
             denomination, count = dlg.result_data
-            self._window.controller.admin_add_cash(denomination, count)
-            reserve = self._window.controller.change_reserve
+            reserve = self._window.change_reserve
+            reserve.add_cash(denomination, count)
+            self._window.controller._dm.save_change_reserve(
+                {str(k): v for k, v in reserve.reserve.items()}
+            )
             self._status_label.setText(
                 f"현금 추가 완료:  {denomination:,}원권  {count}장  "
                 f"(보유 총액: {reserve.get_total():,}원)"
@@ -113,7 +114,7 @@ class AdminMenuScreen(QWidget):
     def _change_password(self) -> None:
         dlg = _ChangePasswordDialog(self)
         if dlg.exec() == QDialog.DialogCode.Accepted and dlg.result_data:
-            self._window.controller.admin_change_password(dlg.result_data)
+            self._window.controller._dm.save_admin_config({"password": dlg.result_data})
             self._status_label.setText("비밀번호가 변경되었습니다.")
 
     def _shutdown(self) -> None:
@@ -129,64 +130,18 @@ class AdminMenuScreen(QWidget):
 
 # ── Helper dialogs ────────────────────────────────────────────
 
-class _ReplenishDialog(QDialog):
-    def __init__(self, ingredients: dict, parent=None) -> None:
+class _ToggleMedicineDialog(QDialog):
+    def __init__(self, medicines: list, parent=None) -> None:
         super().__init__(parent)
-        self.setWindowTitle("재고 보충")
+        self.setWindowTitle("의약품 ON/OFF")
         self.result_data: tuple | None = None
-        self._ingredients = list(ingredients.values())
+        self._medicines = medicines
 
         layout = QVBoxLayout(self)
         self._combo = QComboBox()
-        for ing in self._ingredients:
-            self._combo.addItem(
-                f"{ing.name}  ({ing.stock}/{ing.max_capacity}{ing.unit})",
-                ing.ingredient_id,
-            )
-        self._combo.currentIndexChanged.connect(self._update_max)
-
-        self._spin = QSpinBox()
-        self._spin.setMinimum(1)
-        self._update_max()
-
-        btn_row = QHBoxLayout()
-        btn_ok = QPushButton("확인")
-        btn_cancel = QPushButton("취소")
-        btn_ok.clicked.connect(self._accept_data)
-        btn_cancel.clicked.connect(self.reject)
-        btn_row.addWidget(btn_cancel)
-        btn_row.addWidget(btn_ok)
-
-        layout.addWidget(QLabel("재료 선택:"))
-        layout.addWidget(self._combo)
-        layout.addWidget(QLabel("보충량:"))
-        layout.addWidget(self._spin)
-        layout.addLayout(btn_row)
-
-    def _update_max(self) -> None:
-        idx = self._combo.currentIndex()
-        if 0 <= idx < len(self._ingredients):
-            remaining = self._ingredients[idx].remaining_capacity()
-            self._spin.setMaximum(max(1, remaining))
-
-    def _accept_data(self) -> None:
-        idx = self._combo.currentIndex()
-        self.result_data = (self._ingredients[idx].ingredient_id, self._spin.value())
-        self.accept()
-
-
-class _ToggleDialog(QDialog):
-    def __init__(self, products: list, parent=None) -> None:
-        super().__init__(parent)
-        self.setWindowTitle("상품 ON/OFF")
-        self.result_data: tuple | None = None
-        self._products = products
-
-        layout = QVBoxLayout(self)
-        self._prod_combo = QComboBox()
-        for p in products:
-            state = "판매중" if p.is_available else "판매중지"
-            self._prod_combo.addItem(f"{p.name}  [{state}]", p.product_id)
+        for m in medicines:
+            state = "판매중" if m.is_available else "판매중지"
+            self._combo.addItem(f"{m.name}  [{state}]", m.medicine_id)
 
         self._state_combo = QComboBox()
         self._state_combo.addItem("판매 중", True)
@@ -200,38 +155,38 @@ class _ToggleDialog(QDialog):
         btn_row.addWidget(btn_cancel)
         btn_row.addWidget(btn_ok)
 
-        layout.addWidget(QLabel("상품 선택:"))
-        layout.addWidget(self._prod_combo)
+        layout.addWidget(QLabel("의약품 선택:"))
+        layout.addWidget(self._combo)
         layout.addWidget(QLabel("상태 변경:"))
         layout.addWidget(self._state_combo)
         layout.addLayout(btn_row)
 
     def _accept_data(self) -> None:
         self.result_data = (
-            self._prod_combo.currentData(),
+            self._combo.currentData(),
             self._state_combo.currentData(),
         )
         self.accept()
 
 
-class _SetPriceDialog(QDialog):
-    def __init__(self, products: list, parent=None) -> None:
+class _SetMedicinePriceDialog(QDialog):
+    def __init__(self, medicines: list, parent=None) -> None:
         super().__init__(parent)
-        self.setWindowTitle("가격 변경")
+        self.setWindowTitle("의약품 가격 변경")
         self.result_data: tuple | None = None
-        self._products = products
+        self._medicines = medicines
 
         layout = QVBoxLayout(self)
         self._combo = QComboBox()
-        for p in products:
-            self._combo.addItem(f"{p.name}  ({p.base_price:,}원)", p.product_id)
-        self._combo.currentIndexChanged.connect(self._update_price_spin)
+        for m in medicines:
+            self._combo.addItem(f"{m.name}  ({m.base_price:,}원)", m.medicine_id)
+        self._combo.currentIndexChanged.connect(self._update_spin)
 
         self._spin = QSpinBox()
         self._spin.setMinimum(0)
         self._spin.setMaximum(999_999)
         self._spin.setSingleStep(100)
-        self._update_price_spin()
+        self._update_spin()
 
         btn_row = QHBoxLayout()
         btn_ok = QPushButton("확인")
@@ -241,20 +196,20 @@ class _SetPriceDialog(QDialog):
         btn_row.addWidget(btn_cancel)
         btn_row.addWidget(btn_ok)
 
-        layout.addWidget(QLabel("상품 선택:"))
+        layout.addWidget(QLabel("의약품 선택:"))
         layout.addWidget(self._combo)
         layout.addWidget(QLabel("새 가격 (원):"))
         layout.addWidget(self._spin)
         layout.addLayout(btn_row)
 
-    def _update_price_spin(self) -> None:
+    def _update_spin(self) -> None:
         idx = self._combo.currentIndex()
-        if 0 <= idx < len(self._products):
-            self._spin.setValue(self._products[idx].base_price)
+        if 0 <= idx < len(self._medicines):
+            self._spin.setValue(self._medicines[idx].base_price)
 
     def _accept_data(self) -> None:
         idx = self._combo.currentIndex()
-        self.result_data = (self._products[idx].product_id, self._spin.value())
+        self.result_data = (self._medicines[idx].medicine_id, self._spin.value())
         self.accept()
 
 

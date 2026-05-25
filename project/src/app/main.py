@@ -37,7 +37,7 @@ def main() -> None:
 
     if "--gui" in sys.argv or getattr(sys, "frozen", False):
         from app.gui.app import run_gui
-        sys.exit(run_gui(controller))
+        sys.exit(run_gui(controller, cart, change_reserve))
     else:
         from app.cli_view import CLIView
         CLIView(controller, cart, change_reserve).run()
