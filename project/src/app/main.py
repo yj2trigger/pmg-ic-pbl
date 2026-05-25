@@ -40,7 +40,7 @@ def main() -> None:
         sys.exit(run_gui(controller))
     else:
         from app.cli_view import CLIView
-        CLIView(controller).run()
+        CLIView(controller, cart, change_reserve).run()
 
 
 if __name__ == "__main__":
