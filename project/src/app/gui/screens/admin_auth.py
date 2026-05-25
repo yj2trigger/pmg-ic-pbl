@@ -57,9 +57,10 @@ class AdminAuthScreen(QWidget):
         self._pw_input.setFocus()
 
     def _authenticate(self) -> None:
+        from app.password_utils import verify_password
         pw = self._pw_input.text().strip()
         config = self._window.controller._dm.load_admin_config() or {}
-        if pw == config.get("password", "1234"):
+        if verify_password(pw, config.get("password", "")):
             self._window.go_to_admin_menu()
         else:
             self._error_label.setText("비밀번호가 올바르지 않습니다.")

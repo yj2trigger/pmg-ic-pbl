@@ -4,6 +4,7 @@ import sys
 from app.cart import Cart, OrderItem
 from app.drug_controller import DrugController
 from app.exceptions import InsufficientChangeException, PaymentException
+from app.password_utils import hash_password, verify_password
 from app.payment import CashPayment, CardPayment, ChangeReserve
 
 
@@ -162,7 +163,7 @@ class CLIView:
         for i, item in enumerate(self.cart.items, 1):
             print(f"  {i}. {item.get_summary()}  {item.calculate_subtotal():,}원")
         print(f"\n  합계: {self.cart.get_subtotal():,}원")
-        print("\n  1. 결제 진행  2. 항목 삭제  3. 장바구니 비우기  0. 계속 쿠핑")
+        print("\n  1. 결제 진행  2. 항목 삭제  3. 장바구니 비우기  0. 계속 쇼핑")
         choice = input("선택: ").strip()
         if choice == "1":
             return "pay"
@@ -266,7 +267,7 @@ class CLIView:
         self._print_separator()
         pw = input("관리자 비밀번호: ").strip()
         admin_config = self.controller._dm.load_admin_config()
-        if pw != admin_config.get("password", ""):
+        if not verify_password(pw, admin_config.get("password", "")):
             print("인증 실패: 비밀번호가 올바르지 않습니다.")
             return
         self._show_admin_menu(admin_config)
@@ -291,7 +292,7 @@ class CLIView:
             elif choice == "4":
                 new_pw = input("새 비밀번호 (빈 입력=뒤로): ").strip()
                 if new_pw:
-                    admin_config["password"] = new_pw
+                    admin_config["password"] = hash_password(new_pw)
                     self.controller._dm.save_admin_config(admin_config)
                     print("변경되었습니다.")
             elif choice == "5":
