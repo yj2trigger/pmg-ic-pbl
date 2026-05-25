@@ -2,7 +2,10 @@ name: Gemini PR Review
 
 on:
   pull_request:
-    types: [opened, synchronize]
+    types: [opened, synchronize, reopened]
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   review:
@@ -17,10 +20,9 @@ jobs:
           fetch-depth: 0
 
       - name: Get diff
-        id: diff
         run: |
           git diff ${{ github.event.pull_request.base.sha }}...${{ github.event.pull_request.head.sha }} > diff.txt
-          echo "diff_size=$(wc -c < diff.txt)" >> $GITHUB_OUTPUT
+          echo "diff size: $(wc -c < diff.txt) bytes"
 
       - name: Review with Gemini
         env:
@@ -30,22 +32,17 @@ jobs:
           REPO: ${{ github.repository }}
         run: |
           DIFF=$(cat diff.txt)
-          
           PROMPT="You are a senior code reviewer. Review this git diff and provide concise, actionable feedback in Korean. Focus on: bugs, security issues, performance, and code quality. Be specific with line references.\n\nDiff:\n${DIFF}"
-          
+
+          PAYLOAD=$(jq -n --arg text "$PROMPT" \
+            '{"contents":[{"parts":[{"text":$text}]}],"generationConfig":{"maxOutputTokens":2048}}')
+
           RESPONSE=$(curl -s \
-            "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}" \
+            "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}" \
             -H "Content-Type: application/json" \
-            -d "{
-              \"contents\": [{
-                \"parts\": [{\"text\": $(echo "$PROMPT" | jq -Rs .)}]
-              }],
-              \"generationConfig\": {
-                \"maxOutputTokens\": 2048
-              }
-            }")
-          
-          REVIEW=$(echo "$RESPONSE" | jq -r '.candidates[0].content.parts[0].text // "리뷰 생성 실패"')
-          
-          gh api repos/${REPO}/issues/${PR_NUMBER}/comments \
-            -f body="## Gemini 코드 리뷰\n\n${REVIEW}"
+            -d "$PAYLOAD")
+
+          REVIEW=$(echo "$RESPONSE" | jq -r '.candidates[0].content.parts[0].text // "\(.error.message // "리뷰 생성 실패")"')
+
+          BODY=$(printf "## Gemini 코드 리뷰\n\n%s" "$REVIEW")
+          gh api repos/${REPO}/issues/${PR_NUMBER}/comments -f body="$BODY"
