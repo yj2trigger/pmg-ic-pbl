@@ -38,11 +38,11 @@ jobs:
             '{"contents":[{"parts":[{"text":$text}]}],"generationConfig":{"maxOutputTokens":2048}}')
 
           RESPONSE=$(curl -s \
-            "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}" \
+            "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${GEMINI_API_KEY}" \
             -H "Content-Type: application/json" \
             -d "$PAYLOAD")
 
           REVIEW=$(echo "$RESPONSE" | jq -r '.candidates[0].content.parts[0].text // "\(.error.message // "리뷰 생성 실패")"')
 
-          BODY=$(printf "## Gemini 코드 마뷰\n\n%s" "$REVIEW")
+          BODY=$(printf "## Gemini 코드 리뷰\n\n%s" "$REVIEW")
           gh api repos/${REPO}/issues/${PR_NUMBER}/comments -f body="$BODY"
