@@ -1,20 +1,14 @@
-"""
-각 화면의 단위 테스트.
+"""각 화면 단위 테스트.
 
 mock_window: KioskWindow를 MagicMock으로 대체하여 화면만 독립 검증.
-controller: 실제 KioskController (비즈니스 로직 검증 포함).
-
-실행:
-    pytest tests/test_gui_screens.py -v
+controller: 실제 DrugController (비즈니스 로직 검증 포함).
 """
-import pytest
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 from app.cart import OrderItem
-from app.product import CustomOption
 
 
-# ────────────────────────── IdleScreen ───────────────────────────
+# ─── IdleScreen ──────────────────────────────────────────────────────────────
 
 class TestIdleScreen:
     def test_renders(self, qapp, mock_window):
@@ -22,7 +16,7 @@ class TestIdleScreen:
         screen = IdleScreen(mock_window)
         assert screen is not None
 
-    def test_click_calls_go_to_main_menu(self, qapp, mock_window):
+    def test_click_calls_go_to_symptom_select(self, qapp, mock_window):
         from app.gui.screens.idle import IdleScreen
         from PyQt6.QtCore import QPointF, Qt
         from PyQt6.QtGui import QMouseEvent
@@ -36,173 +30,165 @@ class TestIdleScreen:
             Qt.KeyboardModifier.NoModifier,
         )
         screen.mousePressEvent(event)
-        mock_window.go_to_main_menu.assert_called_once()
+        mock_window.go_to_symptom_select.assert_called_once()
 
 
-# ────────────────────────── MainMenuScreen ───────────────────────
+# ─── SymptomSelectScreen ─────────────────────────────────────────────────────
 
-class TestMainMenuScreen:
-    def test_renders_without_error(self, qapp, mock_window):
-        from app.gui.screens.main_menu import MainMenuScreen
-        screen = MainMenuScreen(mock_window)
+class TestSymptomSelectScreen:
+    def test_renders(self, qapp, mock_window):
+        from app.gui.screens.symptom_select import SymptomSelectScreen
+        screen = SymptomSelectScreen(mock_window)
         screen.refresh()
 
-    def test_cart_frame_hidden_when_empty(self, qapp, mock_window):
-        from app.gui.screens.main_menu import MainMenuScreen
-        screen = MainMenuScreen(mock_window)
+    def test_symptom_buttons_created(self, qapp, mock_window):
+        from app.gui.screens.symptom_select import SymptomSelectScreen
+        screen = SymptomSelectScreen(mock_window)
         screen.refresh()
-        assert not mock_window.controller.cart.is_empty() or not screen._cart_frame.isVisible()
+        # "전체 의약품 보기" 버튼 1개 + 증상 3개 = 4
+        assert screen._grid_layout.count() == 4
 
-    def test_coffee_btn_disabled_when_unavailable(self, qapp, mock_window):
-        from app.gui.screens.main_menu import MainMenuScreen
-        mock_window.controller.products[0].is_available = False
-        mock_window.controller.products[1].is_available = False
-        screen = MainMenuScreen(mock_window)
+    def test_cart_summary_empty(self, qapp, mock_window):
+        from app.gui.screens.symptom_select import SymptomSelectScreen
+        screen = SymptomSelectScreen(mock_window)
         screen.refresh()
-        assert not screen._btn_coffee.isEnabled()
-        # 복원
-        mock_window.controller.products[0].is_available = True
-        mock_window.controller.products[1].is_available = True
+        assert screen._cart_summary.text() == ""
 
-    def test_gummy_btn_enabled_when_available(self, qapp, mock_window):
-        from app.gui.screens.main_menu import MainMenuScreen
-        screen = MainMenuScreen(mock_window)
+    def test_cart_summary_with_items(self, qapp, mock_window, sample_medicines):
+        from app.gui.screens.symptom_select import SymptomSelectScreen
+        mock_window.cart.add_item(OrderItem(sample_medicines[0], {}, 2), {})
+        screen = SymptomSelectScreen(mock_window)
         screen.refresh()
-        assert screen._btn_gummy.isEnabled()
+        assert "2" in screen._cart_summary.text()
+        mock_window.cart.clear({})
 
 
-# ────────────────────────── ProductListScreen ────────────────────
+# ─── MedicineListScreen ──────────────────────────────────────────────────────
 
-class TestProductListScreen:
-    def test_title_coffee(self, qapp, mock_window):
-        from app.gui.screens.product_list import ProductListScreen
-        screen = ProductListScreen(mock_window)
-        screen.setup("coffee")
-        assert screen._title.text() == "커피 선택"
+class TestMedicineListScreen:
+    def test_renders_for_symptom(self, qapp, mock_window):
+        from app.gui.screens.medicine_list import MedicineListScreen
+        screen = MedicineListScreen(mock_window)
+        screen.setup("두통")
 
-    def test_title_gummy(self, qapp, mock_window):
-        from app.gui.screens.product_list import ProductListScreen
-        screen = ProductListScreen(mock_window)
-        screen.setup("gummy")
-        assert screen._title.text() == "구미 선택"
+    def test_renders_for_all(self, qapp, mock_window):
+        from app.gui.screens.medicine_list import MedicineListScreen
+        screen = MedicineListScreen(mock_window)
+        screen.setup(None)
 
-    def test_product_buttons_created(self, qapp, mock_window):
-        from app.gui.screens.product_list import ProductListScreen
-        screen = ProductListScreen(mock_window)
-        screen.setup("coffee")
-        # 커피 상품 2개(c1, c2) → 버튼 2개
-        assert screen._grid.count() == 2
+    def test_shows_available_only_for_symptom(self, qapp, mock_window):
+        from app.gui.screens.medicine_list import MedicineListScreen
+        # m1(두통, 판매중), m3(두통, 판매중지) → m1만 표시
+        screen = MedicineListScreen(mock_window)
+        screen.setup("두통")
+        assert screen._grid_layout.count() == 1
+
+    def test_title_shows_symptom_name(self, qapp, mock_window):
+        from app.gui.screens.medicine_list import MedicineListScreen
+        screen = MedicineListScreen(mock_window)
+        screen.setup("두통")
+        assert "두통" in screen._title.text()
+
+    def test_title_all_medicines(self, qapp, mock_window):
+        from app.gui.screens.medicine_list import MedicineListScreen
+        screen = MedicineListScreen(mock_window)
+        screen.setup(None)
+        assert "전체" in screen._title.text()
 
 
-# ────────────────────────── CustomizeScreen ──────────────────────
+# ─── MedicineDetailScreen ────────────────────────────────────────────────────
 
-class TestCustomizeScreen:
-    def test_renders_with_coffee(self, qapp, mock_window, sample_products):
-        from app.gui.screens.customize import CustomizeScreen
-        screen = CustomizeScreen(mock_window)
-        screen.setup(sample_products[0])
-        assert "아메리카노" in screen._title.text()
+class TestMedicineDetailScreen:
+    def test_renders(self, qapp, mock_window, sample_medicines):
+        from app.gui.screens.medicine_detail import MedicineDetailScreen
+        screen = MedicineDetailScreen(mock_window)
+        screen.setup(sample_medicines[0])
 
-    def test_option_groups_created(self, qapp, mock_window, sample_products):
-        from app.gui.screens.customize import CustomizeScreen
-        screen = CustomizeScreen(mock_window)
-        screen.setup(sample_products[0])  # coffee: 4 groups (size, temperature, shot, sweetness)
-        assert len(screen._option_widgets) == 4
+    def test_name_shown(self, qapp, mock_window, sample_medicines):
+        from app.gui.screens.medicine_detail import MedicineDetailScreen
+        screen = MedicineDetailScreen(mock_window)
+        screen.setup(sample_medicines[0])
+        assert "타이레놀" in screen._name_label.text()
 
-    def test_error_on_no_option_selected(self, qapp, mock_window, sample_products):
-        from app.gui.screens.customize import CustomizeScreen
-        screen = CustomizeScreen(mock_window)
-        screen.setup(sample_products[0])
-        screen._confirm()
-        assert screen._error_label.text() != ""
-        mock_window.go_to_main_menu.assert_not_called()
+    def test_price_shown(self, qapp, mock_window, sample_medicines):
+        from app.gui.screens.medicine_detail import MedicineDetailScreen
+        screen = MedicineDetailScreen(mock_window)
+        screen.setup(sample_medicines[0])
+        assert "3,000" in screen._price_label.text()
 
-    def test_adds_to_cart_when_all_options_selected(self, qapp, mock_window, sample_products):
-        from app.gui.screens.customize import CustomizeScreen
-        screen = CustomizeScreen(mock_window)
-        screen.setup(sample_products[0])
-        for w in screen._option_widgets:
-            btns = w._btn_group.buttons()
-            if btns:
-                btns[0].setChecked(True)
-        screen._confirm()
-        assert not mock_window.controller.cart.is_empty()
-        mock_window.go_to_main_menu.assert_called_once()
-        # 정리
-        mock_window.controller.cart.clear(mock_window.controller.ingredients)
-
-    def test_price_label_updates_on_qty_change(self, qapp, mock_window, sample_products):
-        from app.gui.screens.customize import CustomizeScreen
-        screen = CustomizeScreen(mock_window)
-        screen.setup(sample_products[0])
-        for w in screen._option_widgets:
-            btns = w._btn_group.buttons()
-            if btns:
-                btns[0].setChecked(True)
+    def test_add_to_cart(self, qapp, mock_window, sample_medicines):
+        from app.gui.screens.medicine_detail import MedicineDetailScreen
+        screen = MedicineDetailScreen(mock_window)
+        screen.setup(sample_medicines[0])
         screen._qty_spin.setValue(2)
-        label = screen._price_label.text()
-        assert "원" in label
+        with patch("app.gui.screens.medicine_detail.QMessageBox.information"):
+            screen._add_to_cart()
+        assert mock_window.cart.get_subtotal() == 6000
+        mock_window.cart.clear({})
+        mock_window.go_to_symptom_select.assert_called_once()
 
 
-# ────────────────────────── CartScreen ───────────────────────────
+# ─── EmergencyScreen ─────────────────────────────────────────────────────────
+
+class TestEmergencyScreen:
+    def test_renders(self, qapp, mock_window):
+        from app.gui.screens.emergency import EmergencyScreen
+        screen = EmergencyScreen(mock_window)
+        screen.setup("심한 흉통")
+
+    def test_symptom_name_shown(self, qapp, mock_window):
+        from app.gui.screens.emergency import EmergencyScreen
+        screen = EmergencyScreen(mock_window)
+        screen.setup("심한 흉통")
+        assert "심한 흉통" in screen._symptom_label.text()
+
+
+# ─── CartScreen ──────────────────────────────────────────────────────────────
 
 class TestCartScreen:
     def test_empty_cart_renders(self, qapp, mock_window):
         from app.gui.screens.cart import CartScreen
         screen = CartScreen(mock_window)
         screen.refresh()
-        assert mock_window.controller.cart.is_empty()
+        assert mock_window.cart.is_empty()
 
-    def test_item_added_shows_in_cart(self, qapp, mock_window, sample_products):
+    def test_item_added_shows_in_cart(self, qapp, mock_window, sample_medicines):
         from app.gui.screens.cart import CartScreen
-        opt = CustomOption("size_s", "Small", 0, {"bean": 1})
-        item = OrderItem(sample_products[0], {"size": opt}, 1)
-        ctrl = mock_window.controller
-        ctrl.cart.add_item(item, ctrl.ingredients)
-
+        item = OrderItem(sample_medicines[0], {}, 1)
+        mock_window.cart.add_item(item, {})
         screen = CartScreen(mock_window)
         screen.refresh()
-        # items_layout에 CartItemRow 위젯이 있어야 함
         assert screen._items_layout.count() >= 1
-        ctrl.cart.clear(ctrl.ingredients)
+        mock_window.cart.clear({})
 
-    def test_total_label_shows_amount(self, qapp, mock_window, sample_products):
+    def test_total_label_shows_amount(self, qapp, mock_window, sample_medicines):
         from app.gui.screens.cart import CartScreen
-        opt = CustomOption("size_s", "Small", 0, {"bean": 1})
-        item = OrderItem(sample_products[0], {"size": opt}, 2)
-        ctrl = mock_window.controller
-        ctrl.cart.add_item(item, ctrl.ingredients)
-
+        item = OrderItem(sample_medicines[0], {}, 2)
+        mock_window.cart.add_item(item, {})
         screen = CartScreen(mock_window)
         screen.refresh()
         assert "6,000" in screen._total_label.text()
-        ctrl.cart.clear(ctrl.ingredients)
+        mock_window.cart.clear({})
 
-    def test_remove_item(self, qapp, mock_window, sample_products):
+    def test_remove_item(self, qapp, mock_window, sample_medicines):
         from app.gui.screens.cart import CartScreen
-        opt = CustomOption("size_s", "Small", 0, {"bean": 1})
-        item = OrderItem(sample_products[0], {"size": opt}, 1)
-        ctrl = mock_window.controller
-        ctrl.cart.add_item(item, ctrl.ingredients)
-
+        item = OrderItem(sample_medicines[0], {}, 1)
+        mock_window.cart.add_item(item, {})
         screen = CartScreen(mock_window)
         screen.remove_item(0)
-        assert ctrl.cart.is_empty()
+        assert mock_window.cart.is_empty()
 
-    def test_update_qty(self, qapp, mock_window, sample_products):
+    def test_update_qty(self, qapp, mock_window, sample_medicines):
         from app.gui.screens.cart import CartScreen
-        opt = CustomOption("size_s", "Small", 0, {"bean": 1})
-        item = OrderItem(sample_products[0], {"size": opt}, 1)
-        ctrl = mock_window.controller
-        ctrl.cart.add_item(item, ctrl.ingredients)
-
+        item = OrderItem(sample_medicines[0], {}, 1)
+        mock_window.cart.add_item(item, {})
         screen = CartScreen(mock_window)
         screen.update_item_qty(0, 3)
-        assert ctrl.cart.items[0].quantity == 3
-        ctrl.cart.clear(ctrl.ingredients)
+        assert mock_window.cart.items[0].quantity == 3
+        mock_window.cart.clear({})
 
 
-# ────────────────────────── PaymentMethodScreen ──────────────────
+# ─── PaymentMethodScreen ─────────────────────────────────────────────────────
 
 class TestPaymentMethodScreen:
     def test_renders(self, qapp, mock_window):
@@ -210,86 +196,74 @@ class TestPaymentMethodScreen:
         screen = PaymentMethodScreen(mock_window)
         screen.refresh()
 
-    def test_amount_label_updated(self, qapp, mock_window, sample_products):
+    def test_amount_label_updated(self, qapp, mock_window, sample_medicines):
         from app.gui.screens.payment_method import PaymentMethodScreen
-        opt = CustomOption("size_s", "Small", 0, {"bean": 1})
-        item = OrderItem(sample_products[0], {"size": opt}, 1)
-        ctrl = mock_window.controller
-        ctrl.cart.add_item(item, ctrl.ingredients)
-
+        item = OrderItem(sample_medicines[0], {}, 1)
+        mock_window.cart.add_item(item, {})
         screen = PaymentMethodScreen(mock_window)
         screen.refresh()
         assert "3,000" in screen._amount_label.text()
-        ctrl.cart.clear(ctrl.ingredients)
+        mock_window.cart.clear({})
 
 
-# ────────────────────────── CashPaymentScreen ────────────────────
+# ─── CashPaymentScreen ───────────────────────────────────────────────────────
 
 class TestCashPaymentScreen:
-    def _add_coffee(self, mock_window, sample_products):
-        opt = CustomOption("size_s", "Small", 0, {"bean": 1})
-        item = OrderItem(sample_products[0], {"size": opt}, 1)
-        ctrl = mock_window.controller
-        ctrl.cart.add_item(item, ctrl.ingredients)
+    def _setup_payment(self, mock_window, sample_medicines):
+        from app.payment import CashPayment
+        item = OrderItem(sample_medicines[0], {}, 1)
+        mock_window.cart.add_item(item, {})
+        mock_window._active_payment = CashPayment(
+            mock_window.cart.get_subtotal(), mock_window.change_reserve
+        )
 
-    def test_renders(self, qapp, mock_window, sample_products):
+    def test_renders(self, qapp, mock_window, sample_medicines):
         from app.gui.screens.cash_payment import CashPaymentScreen
-        self._add_coffee(mock_window, sample_products)
-        ctrl = mock_window.controller
-        ctrl.start_cash_payment()
-
+        self._setup_payment(mock_window, sample_medicines)
         screen = CashPaymentScreen(mock_window)
         screen.refresh()
-        mock_window.controller.cancel_payment()
-        ctrl.cart.clear(ctrl.ingredients)
+        mock_window.cart.clear({})
+        mock_window._active_payment = None
 
-    def test_complete_btn_disabled_initially(self, qapp, mock_window, sample_products):
+    def test_complete_btn_disabled_initially(self, qapp, mock_window, sample_medicines):
         from app.gui.screens.cash_payment import CashPaymentScreen
-        self._add_coffee(mock_window, sample_products)
-        ctrl = mock_window.controller
-        ctrl.start_cash_payment()
-
+        self._setup_payment(mock_window, sample_medicines)
         screen = CashPaymentScreen(mock_window)
         screen.refresh()
         assert not screen._btn_complete.isEnabled()
-        ctrl.cancel_payment()
-        ctrl.cart.clear(ctrl.ingredients)
+        mock_window.cart.clear({})
+        mock_window._active_payment = None
 
-    def test_insert_cash_updates_status(self, qapp, mock_window, sample_products):
+    def test_insert_cash_updates_status(self, qapp, mock_window, sample_medicines):
         from app.gui.screens.cash_payment import CashPaymentScreen
-        self._add_coffee(mock_window, sample_products)
-        ctrl = mock_window.controller
-        ctrl.start_cash_payment()
-
+        self._setup_payment(mock_window, sample_medicines)
         screen = CashPaymentScreen(mock_window)
         screen.refresh()
         screen._insert_cash(1000)
         assert "1,000" in screen._status_label.text()
-        ctrl.cancel_payment()
-        ctrl.cart.clear(ctrl.ingredients)
+        mock_window.cart.clear({})
+        mock_window._active_payment = None
 
 
-# ────────────────────────── ReceiptScreen ────────────────────────
+# ─── ReceiptScreen ───────────────────────────────────────────────────────────
 
 class TestReceiptScreen:
-    def test_renders_with_cash(self, qapp, mock_window, sample_products):
+    def test_renders_with_cash(self, qapp, mock_window, sample_medicines):
         from app.gui.screens.receipt import ReceiptScreen
-        opt = CustomOption("size_s", "Small", 0, {})
-        item = OrderItem(sample_products[0], {"size": opt}, 2)
+        item = OrderItem(sample_medicines[0], {}, 2)
         screen = ReceiptScreen(mock_window)
         screen.setup([item], 6000, "현금", {1000: 2})
         assert screen is not None
 
-    def test_renders_with_card(self, qapp, mock_window, sample_products):
+    def test_renders_with_card(self, qapp, mock_window, sample_medicines):
         from app.gui.screens.receipt import ReceiptScreen
-        opt = CustomOption("size_s", "Small", 0, {})
-        item = OrderItem(sample_products[0], {"size": opt}, 1)
+        item = OrderItem(sample_medicines[0], {}, 1)
         screen = ReceiptScreen(mock_window)
         screen.setup([item], 3000, "카드")
         assert screen is not None
 
 
-# ────────────────────────── AdminAuthScreen ──────────────────────
+# ─── AdminAuthScreen ─────────────────────────────────────────────────────────
 
 class TestAdminAuthScreen:
     def test_renders(self, qapp, mock_window):
@@ -322,7 +296,7 @@ class TestAdminAuthScreen:
         assert screen._error_label.text() == ""
 
 
-# ────────────────────────── AdminMenuScreen ──────────────────────
+# ─── AdminMenuScreen ─────────────────────────────────────────────────────────
 
 class TestAdminMenuScreen:
     def test_renders(self, qapp, mock_window):
@@ -333,21 +307,18 @@ class TestAdminMenuScreen:
 
     def test_show_cash_no_crash(self, qapp, mock_window):
         from app.gui.screens.admin_menu import AdminMenuScreen
-        from unittest.mock import patch
         screen = AdminMenuScreen(mock_window)
         with patch("app.gui.screens.admin_menu.QMessageBox.information"):
             screen._show_cash()
 
     def test_add_cash_updates_reserve(self, qapp, mock_window):
         from app.gui.screens.admin_menu import _AddCashDialog
-        ctrl = mock_window.controller
-        before = ctrl.change_reserve.reserve.get(10000, 0)
+        before = mock_window.change_reserve.reserve.get(10000, 0)
         dlg = _AddCashDialog()
-        dlg._denom_combo.setCurrentIndex(
-            [dlg._denom_combo.itemData(i) for i in range(dlg._denom_combo.count())].index(10000)
-        )
+        idx = [dlg._denom_combo.itemData(i) for i in range(dlg._denom_combo.count())].index(10000)
+        dlg._denom_combo.setCurrentIndex(idx)
         dlg._count_spin.setValue(5)
         dlg._accept_data()
         denomination, count = dlg.result_data
-        ctrl.admin_add_cash(denomination, count)
-        assert ctrl.change_reserve.reserve[10000] == before + 5
+        mock_window.change_reserve.add_cash(denomination, count)
+        assert mock_window.change_reserve.reserve[10000] == before + 5
