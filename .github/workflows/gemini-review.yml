@@ -31,7 +31,7 @@ jobs:
           PROMPT="You are a senior code reviewer. Review this git diff and provide concise, actionable feedback in Korean. Focus on: bugs, security issues, performance, and code quality. Be specific with line references.\n\nDiff:\n${DIFF}"
 
           PAYLOAD=$(jq -n --arg text "$PROMPT" \
-            '{"contents":[{"parts":[{"text":$text}]},"generationConfig":{"maxOutputTokens":2048}]}')
+            '{"contents":[{"parts":[{"text":$text}]}],"generationConfig":{"maxOutputTokens":2048}}')
 
           RESPONSE=$(curl -s \
             "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}" \
