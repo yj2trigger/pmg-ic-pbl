@@ -53,17 +53,17 @@ pip install .[dev]
 
 ## 실행
 
+> 아래 명령은 `project/` 디렉터리에서 실행합니다. (설치 단계 완료 후 해당 위치)
+
 ### GUI 모드 (키오스크)
 
 ```bash
-cd project
 python -m src.main
 ```
 
 ### CLI 모드 (관리자 도구)
 
 ```bash
-cd project
 python -m src.main --cli
 ```
 
@@ -72,7 +72,6 @@ python -m src.main --cli
 ## 테스트
 
 ```bash
-cd project
 pytest
 ```
 
@@ -89,14 +88,13 @@ pytest tests/test_cart.py -v
 ```
 
 > **참고**: GUI 테스트(`test_gui_*.py`)는 `pytest-qt`가 필요합니다.  
-> TTS / pygame 관련 모듈은 테스트 시 자동으로 mock 처리됩니다.
+> TTS / pygame 관련 모듈은 `conftest.py` fixture를 통해 테스트 시 자동으로 mock 처리됩니다.
 
 ---
 
 ## 빌드
 
 ```bash
-cd project
 pip install build
 python -m build
 ```
