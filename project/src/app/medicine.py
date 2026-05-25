@@ -19,7 +19,7 @@ class Medicine:
         self.dosage = dosage
         self.caution = caution
 
-    def calculate_price(self) -> int:
+    def calculate_price(self, selected_options=None) -> int:
         return self.base_price
 
     def get_display_name(self) -> str:
