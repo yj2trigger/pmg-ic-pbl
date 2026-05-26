@@ -2,7 +2,7 @@
   {
     "medicine_id": "MED-001",
     "name": "타이레놀 500mg",
-    "base_price": 5500,
+    "base_price": 6000,
     "is_available": true,
     "symptom_categories": ["두통", "발열", "근육통"],
     "description": "아세트아미노펜 성분의 진통해열제",
@@ -22,7 +22,7 @@
   {
     "medicine_id": "MED-003",
     "name": "베아제",
-    "base_price": 3500,
+    "base_price": 4000,
     "is_available": true,
     "symptom_categories": ["소화불량", "복부팽만"],
     "description": "소화효소 복합 소화제",
@@ -32,7 +32,7 @@
   {
     "medicine_id": "MED-004",
     "name": "훼스탈플러스",
-    "base_price": 4500,
+    "base_price": 5000,
     "is_available": true,
     "symptom_categories": ["소화불량", "과식"],
     "description": "소화효소 복합 소화제 (지방·단백질·탄수화물 분해)",

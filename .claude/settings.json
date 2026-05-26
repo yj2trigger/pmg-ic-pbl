@@ -11,7 +11,11 @@
       "Bash(PYTHONPATH=src python -m unittest tests.test_scenarios -v)",
       "Bash(PYTHONPATH=src python -c \"from app.gui import KioskGUI; print\\('OK'\\)\")",
       "Bash(PYTHONPATH=src python -m unittest tests.test_gui_log_panel -v)",
-      "Bash(PYTHONPATH=src python -m unittest tests.test_gui_state_machine -v)"
+      "Bash(PYTHONPATH=src python -m unittest tests.test_gui_state_machine -v)",
+      "Bash(pip install *)",
+      "Bash(python -m app.main --gui)",
+      "Bash(git -C \"c:\\\\onedrive\\\\_대학교\\\\프로그래밍기초\\\\pmg-ic-pbl\" status)",
+      "Bash(git -C \"c:\\\\onedrive\\\\_대학교\\\\프로그래밍기초\\\\pmg-ic-pbl\" diff)"
     ]
   }
 }
