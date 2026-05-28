@@ -31,16 +31,17 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number }}
           REPO: ${{ github.repository }}
         run: |
-          DIFF=$(cat diff.txt)
-          PROMPT="You are a senior code reviewer. Review this git diff and provide concise, actionable feedback in Korean. Focus on: bugs, security issues, performance, and code quality. Be specific with line references.\n\nDiff:\n${DIFF}"
+          printf 'You are a senior code reviewer. Review this git diff and provide concise, actionable feedback in Korean. Focus on: bugs, security issues, performance, and code quality. Be specific with line references.\n\nDiff:\n' > prompt.txt
+          cat diff.txt >> prompt.txt
 
-          PAYLOAD=$(jq -n --arg text "$PROMPT" \
-            '{"contents":[{"parts":[{"text":$text}]}],"generationConfig":{"maxOutputTokens":2048}}')
+          jq -n --rawfile text prompt.txt \
+            '{"contents":[{"parts":[{"text":$text}]}],"generationConfig":{"maxOutputTokens":2048}}' > payload.json
 
           RESPONSE=$(curl -s \
-            "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${GEMINI_API_KEY}" \
+            "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent" \
             -H "Content-Type: application/json" \
-            -d "$PAYLOAD")
+            -H "x-goog-api-key: ${GEMINI_API_KEY}" \
+            -d @payload.json)
 
           REVIEW=$(echo "$RESPONSE" | jq -r '(.candidates[0].content.parts[0].text) // (.error.message) // "리뷰 생성 실패"')
 

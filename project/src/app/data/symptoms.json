@@ -1,0 +1,50 @@
+[
+  {
+    "symptom_id": "SYM-001",
+    "name": "두통",
+    "is_emergency": false,
+    "description": "머리가 아프거나 무거운 느낌"
+  },
+  {
+    "symptom_id": "SYM-002",
+    "name": "발열",
+    "is_emergency": false,
+    "description": "체온이 37.5도 이상으로 상승한 상태"
+  },
+  {
+    "symptom_id": "SYM-003",
+    "name": "감기",
+    "is_emergency": false,
+    "description": "코막힘, 기침, 인후통을 동반한 상기도 감염"
+  },
+  {
+    "symptom_id": "SYM-004",
+    "name": "소화불량",
+    "is_emergency": false,
+    "description": "식후 더부룩하거나 속이 불편한 느낌"
+  },
+  {
+    "symptom_id": "SYM-005",
+    "name": "근육통",
+    "is_emergency": false,
+    "description": "근육이 쑤시고 아픈 증상"
+  },
+  {
+    "symptom_id": "SYM-006",
+    "name": "피로",
+    "is_emergency": false,
+    "description": "만성적인 피로감과 무기력증"
+  },
+  {
+    "symptom_id": "SYM-007",
+    "name": "흉통",
+    "is_emergency": true,
+    "description": "가슴 통증 — 즉시 의료기관 방문 필요"
+  },
+  {
+    "symptom_id": "SYM-008",
+    "name": "호흡곤란",
+    "is_emergency": true,
+    "description": "숨쉬기 어려운 증상 — 즉시 119 연락 필요"
+  }
+]

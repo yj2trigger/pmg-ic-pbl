@@ -5,23 +5,25 @@ from unittest.mock import MagicMock
 
 import pytest
 
-# CI 환경 / 디스플레이 없는 환경을 위한 offscreen 렌더러 설정
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
-# src 경로를 import path에 추가
+# Mock audio/TTS libs so tests run without audio device or network access
+for _mod in ("pygame", "pygame.mixer", "edge_tts"):
+    sys.modules.setdefault(_mod, MagicMock())
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 from PyQt6.QtWidgets import QApplication
 
 from app.cart import Cart
 from app.data_manager import DataManager
-from app.ingredient import Ingredient
-from app.kiosk_controller import KioskController
+from app.drug_controller import DrugController
+from app.medicine import Medicine
 from app.payment import ChangeReserve
-from app.product import Coffee, CustomOption, Gummy, OptionGroup
+from app.symptom import Symptom, SymptomGroup
 
 
-# ── QApplication (session 스코프: 한 번만 생성) ───────────────
+# ── QApplication (session 스코프: 한 번만 생성) ───────────────────────────
 @pytest.fixture(scope="session")
 def qapp():
     app = QApplication.instance()
@@ -30,81 +32,62 @@ def qapp():
     return app
 
 
-# ── 도메인 객체 ───────────────────────────────────────────────
+# ── 도메인 객체 ─────────────────────────────────────────────────────────────
 @pytest.fixture
-def sample_products():
+def sample_medicines():
     return [
-        Coffee("c1", "아메리카노", 3000),
-        Coffee("c2", "라떼", 3500),
-        Gummy("g1", "영양구미", 2000),
+        Medicine("m1", "타이레놀", 3000, True,  ["두통", "발열"], "해열진통제", "1회 1정", "과다복용 주의"),
+        Medicine("m2", "판콜에이", 5000, True,  ["감기", "기침"], "종합감기약", "1회 2정", "졸음 주의"),
+        Medicine("m3", "게보린",   2500, False, ["두통"],          "진통제",     "1회 1정", "공복 복용 금지"),
     ]
 
 
 @pytest.fixture
-def sample_ingredients():
-    return {
-        "bean":   Ingredient("bean",   "원두",      2000, 5000,  "g"),
-        "ice":    Ingredient("ice",    "얼음",      3000, 10000, "g"),
-        "syrup":  Ingredient("syrup",  "시럽",      1500, 3000,  "ml"),
-        "g_base": Ingredient("g_base", "구미베이스", 1000, 3000,  "g"),
-        "vit_c":  Ingredient("vit_c",  "비타민C",   500,  1000,  "g"),
-        "pouch":  Ingredient("pouch",  "파우치",    200,  500,   "개"),
-    }
-
-
-@pytest.fixture
-def sample_option_groups():
+def sample_symptoms():
     return [
-        OptionGroup("size", "크기", [
-            CustomOption("size_s", "Small",  0,   {"bean": 1}),
-            CustomOption("size_m", "Medium", 300, {"bean": 2}),
-        ], active_for=["coffee"]),
-        OptionGroup("temperature", "온도", [
-            CustomOption("temp_hot", "HOT", 0, {}),
-            CustomOption("temp_ice", "ICE", 0, {"ice": 3}),
-        ], active_for=["coffee"]),
-        OptionGroup("shot", "샷", [
-            CustomOption("shot_1", "1샷", 0,   {}),
-            CustomOption("shot_2", "2샷", 300, {"bean": 1}),
-        ], active_for=["coffee"]),
-        OptionGroup("sweetness", "당도", [
-            CustomOption("sweet_none", "없음", 0,   {}),
-            CustomOption("sweet_mid",  "보통", 0,   {"syrup": 1}),
-        ], active_for=["coffee"]),
-        OptionGroup("flavor", "맛", [
-            CustomOption("flv_straw", "딸기", 0, {"g_base": 1}),
-            CustomOption("flv_grape", "포도", 0, {"g_base": 1}),
-        ], active_for=["gummy"]),
-        OptionGroup("effect", "성분", [
-            CustomOption("eff_vitc",  "비타민C", 0, {"vit_c": 1}),
-        ], active_for=["gummy"]),
-        OptionGroup("count", "수량(알)", [
-            CustomOption("cnt_5",  "5알",  0,   {"g_base": 1}),
-            CustomOption("cnt_10", "10알", 500, {"g_base": 2}),
-        ], active_for=["gummy"]),
-        OptionGroup("package", "패키지", [
-            CustomOption("pkg_solo",  "낱개",   0,   {}),
-            CustomOption("pkg_pouch", "파우치", 300, {"pouch": 1}),
-        ], active_for=["gummy"]),
+        Symptom("s1", "두통",     is_emergency=False),
+        Symptom("s2", "감기",     is_emergency=False),
+        Symptom("s3", "심한 흉통", is_emergency=True),
     ]
 
 
 @pytest.fixture
-def controller(sample_products, sample_ingredients, sample_option_groups):
-    return KioskController(
-        products=sample_products,
-        ingredients=sample_ingredients,
-        option_groups=sample_option_groups,
-        cart=Cart(),
-        change_reserve=ChangeReserve({1000: 100, 5000: 20, 10000: 10, 50000: 5}),
-        admin_config={"password": "1234"},
-        data_manager=MagicMock(spec=DataManager),
-    )
+def sample_symptom_group(sample_symptoms):
+    return SymptomGroup(sample_symptoms)
 
 
 @pytest.fixture
-def mock_window(controller):
-    """KioskWindow 대신 MagicMock을 사용. controller는 실제 객체."""
+def mock_dm(sample_medicines, sample_symptom_group):
+    dm = MagicMock(spec=DataManager)
+    dm.load_medicines.return_value = sample_medicines
+    dm.load_symptoms.return_value = sample_symptom_group
+    dm.load_admin_config.return_value = {"password": "1234"}
+    dm.load_change_reserve.return_value = {50000: 5, 10000: 10, 5000: 20, 1000: 50}
+    return dm
+
+
+@pytest.fixture
+def controller(mock_dm):
+    return DrugController(mock_dm)
+
+
+@pytest.fixture
+def cart():
+    return Cart()
+
+
+@pytest.fixture
+def change_reserve():
+    return ChangeReserve({50000: 5, 10000: 10, 5000: 20, 1000: 50})
+
+
+@pytest.fixture
+def mock_window(controller, cart, change_reserve):
+    """KioskWindow 대신 MagicMock. controller/cart/change_reserve는 실제 객체."""
     win = MagicMock()
     win.controller = controller
+    win.cart = cart
+    win.change_reserve = change_reserve
+    win._active_payment = None
+    win._current_symptom_name = None
     return win

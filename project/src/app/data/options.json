@@ -17,7 +17,7 @@
       {
         "option_id": "size_m",
         "name": "Medium",
-        "extra_price": 300,
+        "extra_price": 1000,
         "required_ingredients_dic": {
           "bean": 2
         }
@@ -25,7 +25,7 @@
       {
         "option_id": "size_l",
         "name": "Large",
-        "extra_price": 500,
+        "extra_price": 1000,
         "required_ingredients_dic": {
           "bean": 3
         }
@@ -71,7 +71,7 @@
       {
         "option_id": "shot_2",
         "name": "2샷",
-        "extra_price": 300,
+        "extra_price": 1000,
         "required_ingredients_dic": {
           "bean": 1
         }
@@ -102,7 +102,7 @@
       {
         "option_id": "sweet_high",
         "name": "많이",
-        "extra_price": 200,
+        "extra_price": 1000,
         "required_ingredients_dic": {
           "syrup": 2
         }
@@ -120,7 +120,7 @@
       {
         "option_id": "cream_yes",
         "name": "있음",
-        "extra_price": 200,
+        "extra_price": 1000,
         "required_ingredients_dic": {
           "cream": 1,
           "milk": 1
@@ -160,7 +160,7 @@
       {
         "option_id": "flv_lemon",
         "name": "레몬",
-        "extra_price": 200,
+        "extra_price": 1000,
         "required_ingredients_dic": {
           "g_base": 1
         }
@@ -185,7 +185,7 @@
       {
         "option_id": "eff_omega",
         "name": "오메가3",
-        "extra_price": 300,
+        "extra_price": 1000,
         "required_ingredients_dic": {
           "omega3": 1
         }
@@ -193,7 +193,7 @@
       {
         "option_id": "eff_col",
         "name": "콜라겐",
-        "extra_price": 500,
+        "extra_price": 1000,
         "required_ingredients_dic": {
           "collagen": 1
         }
@@ -218,7 +218,7 @@
       {
         "option_id": "cnt_10",
         "name": "10알",
-        "extra_price": 500,
+        "extra_price": 1000,
         "required_ingredients_dic": {
           "g_base": 2
         }
@@ -249,7 +249,7 @@
       {
         "option_id": "pkg_pouch",
         "name": "파우치",
-        "extra_price": 300,
+        "extra_price": 1000,
         "required_ingredients_dic": {
           "pouch": 1
         }
