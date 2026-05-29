@@ -16,7 +16,8 @@ class Statistics:
         self.revenue += amount
 
     def _get_product_key(self, product) -> str:
-        for attr in ("medicine_id", "product_id", "product_type"):
+        # product_type 우선 (아이스크림), medicine_id 차선 (의약품 호환), product_id 마지막
+        for attr in ("product_type", "medicine_id", "product_id"):
             value = getattr(product, attr, None)
             if value:
                 return value
