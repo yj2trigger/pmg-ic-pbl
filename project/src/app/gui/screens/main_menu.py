@@ -1,5 +1,5 @@
 from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QFrame,
+    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QFrame, QMessageBox,
 )
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
@@ -61,12 +61,16 @@ class MainMenuScreen(QWidget):
         product = next((p for p in ctrl.get_available_products() if p.product_type == "stick"), None)
         if product:
             self._window.go_to_customize(product)
+        else:
+            QMessageBox.information(self, "품절", "스틱 아이스크림이 현재 품절입니다.")
 
     def _go_scoop(self) -> None:
         ctrl = self._window.controller
         product = next((p for p in ctrl.get_available_products() if p.product_type == "scoop"), None)
         if product:
             self._window.go_to_customize(product)
+        else:
+            QMessageBox.information(self, "품절", "스쿱 아이스크림이 현재 품절입니다.")
 
     def refresh(self) -> None:
         ctrl = self._window.controller
