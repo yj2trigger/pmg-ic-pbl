@@ -39,7 +39,7 @@ class CartScreen(QWidget):
         btn_pay = QPushButton("결제하기  →")
         btn_pay.setMinimumHeight(60)
         btn_pay.setFont(QFont("Malgun Gothic", 17))
-        btn_back.clicked.connect(lambda: self._window.go_to_symptom_select())
+        btn_back.clicked.connect(lambda: self._window.go_to_main_menu())
         btn_clear.clicked.connect(self._clear_cart)
         btn_pay.clicked.connect(lambda: self._window.go_to_payment_method())
         btn_row.addWidget(btn_back)
@@ -74,24 +74,26 @@ class CartScreen(QWidget):
             self._total_label.setText(f"합계: {cart.get_subtotal():,}원")
 
     def update_item_qty(self, index: int, qty: int) -> None:
-        cart = self._window.cart
+        ctrl = self._window.controller
         try:
             if qty == 0:
-                cart.remove_item(index, {})
+                ctrl.remove_from_cart(index)
             else:
-                cart.update_quantity(index, qty, {})
+                ctrl.update_cart_qty(index, qty)
         except Exception as e:
             QMessageBox.warning(self, "오류", str(e))
         self.refresh()
 
     def remove_item(self, index: int) -> None:
-        self._window.cart.remove_item(index, {})
+        self._window.controller.remove_from_cart(index)
         self.refresh()
 
     def _clear_cart(self) -> None:
+        ctrl = self._window.controller
         cart = self._window.cart
         if not cart.is_empty():
-            cart.clear({})
+            cart.clear(ctrl.ingredients)
+            ctrl._save_ingredients()
         self.refresh()
 
 
