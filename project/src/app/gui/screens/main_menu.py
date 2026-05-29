@@ -56,21 +56,19 @@ class MainMenuScreen(QWidget):
         layout.addStretch()
         layout.addWidget(btn_back)
 
-    def _go_stick(self) -> None:
+    def _go_product(self, product_type: str, name: str) -> None:
         ctrl = self._window.controller
-        product = next((p for p in ctrl.get_available_products() if p.product_type == "stick"), None)
+        product = next((p for p in ctrl.get_available_products() if p.product_type == product_type), None)
         if product:
             self._window.go_to_customize(product)
         else:
-            QMessageBox.information(self, "품절", "스틱 아이스크림이 현재 품절입니다.")
+            QMessageBox.information(self, "품절", f"{name}이(가) 현재 품절입니다.")
+
+    def _go_stick(self) -> None:
+        self._go_product("stick", "스틱 아이스크림")
 
     def _go_scoop(self) -> None:
-        ctrl = self._window.controller
-        product = next((p for p in ctrl.get_available_products() if p.product_type == "scoop"), None)
-        if product:
-            self._window.go_to_customize(product)
-        else:
-            QMessageBox.information(self, "품절", "스쿱 아이스크림이 현재 품절입니다.")
+        self._go_product("scoop", "스쿱 아이스크림")
 
     def refresh(self) -> None:
         ctrl = self._window.controller

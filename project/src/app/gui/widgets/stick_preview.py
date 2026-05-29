@@ -5,13 +5,7 @@ from PyQt6.QtCore import Qt, QPointF
 from PyQt6.QtGui import QColor, QPainter, QPainterPath, QPen, QBrush
 from PyQt6.QtWidgets import QWidget
 
-FLAVOR_COLORS = {
-    "vanilla":    QColor(255, 243, 176),
-    "choco":      QColor(101,  67,  33),
-    "strawberry": QColor(252, 129, 145),
-    "mint":       QColor(152, 225, 183),
-    "mango":      QColor(255, 179,  71),
-}
+from app.gui.widgets.colors import FLAVOR_COLORS
 
 TOPPING_COLORS = {
     "sprinkle":     [QColor(255,80,80), QColor(80,200,80), QColor(80,80,255), QColor(255,200,0)],

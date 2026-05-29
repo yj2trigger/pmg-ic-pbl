@@ -64,9 +64,17 @@ class AdminMenuScreen(QWidget):
         dlg = _ToggleProductDialog(ctrl.products, self)
         if dlg.exec() == QDialog.DialogCode.Accepted:
             pid, flag = dlg.result_data
-            ctrl.admin_toggle_product(pid, flag)
             state = "판매 중" if flag else "판매 중지"
-            self._status_label.setText(f"변경 완료: {pid} → {state}")
+            product = next((p for p in ctrl.products if p.product_id == pid), None)
+            name = product.name if product else pid
+            confirm = QMessageBox.question(
+                self, "변경 확인",
+                f"[{name}]을(를) '{state}'으로 변경하시겠습니까?",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            )
+            if confirm == QMessageBox.StandardButton.Yes:
+                ctrl.admin_toggle_product(pid, flag)
+                self._status_label.setText(f"변경 완료: {name} → {state}")
 
     def _replenish_ingredient(self) -> None:
         ctrl = self._window.controller

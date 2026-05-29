@@ -36,16 +36,16 @@ class CartScreen(QWidget):
         btn_row = QHBoxLayout()
         btn_back = QPushButton("← 계속 쇼핑")
         btn_clear = QPushButton("전체 삭제")
-        btn_pay = QPushButton("결제하기  →")
-        btn_pay.setMinimumHeight(60)
-        btn_pay.setFont(QFont("Malgun Gothic", 17))
+        self._btn_pay = QPushButton("결제하기  →")
+        self._btn_pay.setMinimumHeight(60)
+        self._btn_pay.setFont(QFont("Malgun Gothic", 17))
         btn_back.clicked.connect(lambda: self._window.go_to_main_menu())
         btn_clear.clicked.connect(self._clear_cart)
-        btn_pay.clicked.connect(lambda: self._window.go_to_payment_method())
+        self._btn_pay.clicked.connect(lambda: self._window.go_to_payment_method())
         btn_row.addWidget(btn_back)
         btn_row.addWidget(btn_clear)
         btn_row.addStretch()
-        btn_row.addWidget(btn_pay)
+        btn_row.addWidget(self._btn_pay)
 
         layout.addWidget(title)
         layout.addWidget(scroll, 1)
@@ -72,6 +72,7 @@ class CartScreen(QWidget):
                 self._items_layout.addWidget(row)
             self._items_layout.addStretch()
             self._total_label.setText(f"합계: {cart.get_subtotal():,}원")
+        self._btn_pay.setEnabled(not self._window.cart.is_empty())
 
     def update_item_qty(self, index: int, qty: int) -> None:
         ctrl = self._window.controller
