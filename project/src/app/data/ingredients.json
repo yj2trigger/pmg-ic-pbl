@@ -1,72 +1,13 @@
 [
-  {
-    "ingredient_id": "bean",
-    "name": "원두",
-    "stock": 98,
-    "max_capacity": 300,
-    "unit": "개"
-  },
-  {
-    "ingredient_id": "milk",
-    "name": "우유",
-    "stock": 100,
-    "max_capacity": 200,
-    "unit": "개"
-  },
-  {
-    "ingredient_id": "ice",
-    "name": "얼음",
-    "stock": 200,
-    "max_capacity": 500,
-    "unit": "개"
-  },
-  {
-    "ingredient_id": "cream",
-    "name": "크림",
-    "stock": 30,
-    "max_capacity": 100,
-    "unit": "개"
-  },
-  {
-    "ingredient_id": "syrup",
-    "name": "시럽",
-    "stock": 49,
-    "max_capacity": 150,
-    "unit": "개"
-  },
-  {
-    "ingredient_id": "g_base",
-    "name": "구미베이스",
-    "stock": 85,
-    "max_capacity": 300,
-    "unit": "개"
-  },
-  {
-    "ingredient_id": "vit_c",
-    "name": "비타민C",
-    "stock": 50,
-    "max_capacity": 150,
-    "unit": "개"
-  },
-  {
-    "ingredient_id": "omega3",
-    "name": "오메가3",
-    "stock": 47,
-    "max_capacity": 150,
-    "unit": "개"
-  },
-  {
-    "ingredient_id": "collagen",
-    "name": "콜라겐",
-    "stock": 50,
-    "max_capacity": 150,
-    "unit": "개"
-  },
-  {
-    "ingredient_id": "pouch",
-    "name": "파우치",
-    "stock": 55,
-    "max_capacity": 100,
-    "unit": "개"
-  }
+  {"ingredient_id": "mix_vanilla",      "name": "바닐라 믹스",   "stock": 50, "max_capacity": 100, "unit": "개"},
+  {"ingredient_id": "mix_choco",        "name": "초코 믹스",     "stock": 50, "max_capacity": 100, "unit": "개"},
+  {"ingredient_id": "mix_strawberry",   "name": "딸기 믹스",     "stock": 50, "max_capacity": 100, "unit": "개"},
+  {"ingredient_id": "mix_mint",         "name": "민트 믹스",     "stock": 50, "max_capacity": 100, "unit": "개"},
+  {"ingredient_id": "mix_mango",        "name": "망고 믹스",     "stock": 50, "max_capacity": 100, "unit": "개"},
+  {"ingredient_id": "stick_base",       "name": "스틱 베이스",   "stock": 100, "max_capacity": 200, "unit": "개"},
+  {"ingredient_id": "cup",              "name": "컵",            "stock": 100, "max_capacity": 200, "unit": "개"},
+  {"ingredient_id": "cone",             "name": "콘",            "stock": 100, "max_capacity": 200, "unit": "개"},
+  {"ingredient_id": "top_sprinkle",     "name": "스프링클",      "stock": 100, "max_capacity": 200, "unit": "개"},
+  {"ingredient_id": "top_nuts",         "name": "견과류",        "stock": 50,  "max_capacity": 100, "unit": "개"},
+  {"ingredient_id": "top_choco_drizzle","name": "초코 드리즐",   "stock": 50,  "max_capacity": 100, "unit": "개"}
 ]
