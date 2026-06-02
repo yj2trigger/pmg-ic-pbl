@@ -49,12 +49,14 @@ class CashPayment(Payment):
     def __init__(self, amount: int, change_reserve: ChangeReserve):
         super().__init__(amount)
         self.inserted_amount = 0
+        self.inserted_bills: dict[int, int] = {}
         self.change_reserve = change_reserve
 
     def insert(self, denomination: int) -> None:
         if denomination not in ChangeReserve.DENOMINATIONS:
             raise ValueError(f"유효하지 않은 권종: {denomination}")
         self.inserted_amount += denomination
+        self.inserted_bills[denomination] = self.inserted_bills.get(denomination, 0) + 1
 
     def can_complete(self) -> bool:
         return self.inserted_amount >= self.amount
@@ -63,6 +65,8 @@ class CashPayment(Payment):
         return self.inserted_amount - self.amount
 
     def process(self) -> dict:
+        for denom, count in self.inserted_bills.items():
+            self.change_reserve.add_cash(denom, count)
         return self.change_reserve.dispense(self.get_change_amount())
 
 
