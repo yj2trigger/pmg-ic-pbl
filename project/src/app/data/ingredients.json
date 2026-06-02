@@ -2,77 +2,77 @@
   {
     "ingredient_id": "mix_vanilla",
     "name": "바닐라 믹스",
-    "stock": 50,
+    "stock": 44,
     "max_capacity": 100,
     "unit": "개"
   },
   {
     "ingredient_id": "mix_choco",
     "name": "초코 믹스",
-    "stock": 50,
+    "stock": 40,
     "max_capacity": 100,
     "unit": "개"
   },
   {
     "ingredient_id": "mix_strawberry",
     "name": "딸기 믹스",
-    "stock": 50,
+    "stock": 40,
     "max_capacity": 100,
     "unit": "개"
   },
   {
     "ingredient_id": "mix_mint",
     "name": "민트 믹스",
-    "stock": 50,
+    "stock": 45,
     "max_capacity": 100,
     "unit": "개"
   },
   {
     "ingredient_id": "mix_mango",
     "name": "망고 믹스",
-    "stock": 50,
+    "stock": 45,
     "max_capacity": 100,
     "unit": "개"
   },
   {
     "ingredient_id": "stick_base",
     "name": "스틱 베이스",
-    "stock": 100,
+    "stock": 90,
     "max_capacity": 200,
     "unit": "개"
   },
   {
     "ingredient_id": "cup",
     "name": "컵",
-    "stock": 100,
+    "stock": 94,
     "max_capacity": 200,
     "unit": "개"
   },
   {
     "ingredient_id": "cone",
     "name": "콘",
-    "stock": 100,
+    "stock": 94,
     "max_capacity": 200,
     "unit": "개"
   },
   {
     "ingredient_id": "top_sprinkle",
     "name": "스프링클",
-    "stock": 100,
+    "stock": 93,
     "max_capacity": 200,
     "unit": "개"
   },
   {
     "ingredient_id": "top_nuts",
     "name": "견과류",
-    "stock": 50,
+    "stock": 49,
     "max_capacity": 100,
     "unit": "개"
   },
   {
     "ingredient_id": "top_choco_drizzle",
     "name": "초코 드리즐",
-    "stock": 50,
+    "stock": 48,
     "max_capacity": 100,
     "unit": "개"
   }

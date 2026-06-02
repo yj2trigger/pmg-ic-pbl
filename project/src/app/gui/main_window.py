@@ -113,6 +113,7 @@ class KioskWindow(QMainWindow):
         self.cart = cart
         self.change_reserve = change_reserve
         self._active_payment = None
+        self._customize_announced = False
         self.voice = VoiceService()
         self.setWindowTitle("🍦 아이스크림 키오스크")
         self.setStyleSheet(STYLESHEET)
@@ -154,6 +155,7 @@ class KioskWindow(QMainWindow):
             self.cart.clear(self.controller.ingredients)  # 세션 포기: 재고 복원
             self.controller._save_ingredients()
         self._active_payment = None
+        self._customize_announced = False
         self._stack.setCurrentWidget(self._idle)
         self.voice.speak("화면을 터치하면 시작합니다")
 
@@ -164,6 +166,9 @@ class KioskWindow(QMainWindow):
     def go_to_customize(self, product) -> None:
         self._customize.setup(product)
         self._stack.setCurrentWidget(self._customize)
+        if not self._customize_announced:
+            self._customize_announced = True
+            self.voice.speak("옵션을 선택해 주세요")
 
     def go_to_cart(self) -> None:
         self._cart.refresh()
