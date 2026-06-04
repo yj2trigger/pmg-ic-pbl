@@ -36,16 +36,16 @@ class CartScreen(QWidget):
         btn_row = QHBoxLayout()
         btn_back = QPushButton("← 계속 쇼핑")
         btn_clear = QPushButton("전체 삭제")
-        btn_pay = QPushButton("결제하기  →")
-        btn_pay.setMinimumHeight(60)
-        btn_pay.setFont(QFont("Malgun Gothic", 17))
-        btn_back.clicked.connect(lambda: self._window.go_to_symptom_select())
+        self._btn_pay = QPushButton("결제하기  →")
+        self._btn_pay.setMinimumHeight(60)
+        self._btn_pay.setFont(QFont("Malgun Gothic", 17))
+        btn_back.clicked.connect(lambda: self._window.go_to_main_menu())
         btn_clear.clicked.connect(self._clear_cart)
-        btn_pay.clicked.connect(lambda: self._window.go_to_payment_method())
+        self._btn_pay.clicked.connect(lambda: self._window.go_to_payment_method())
         btn_row.addWidget(btn_back)
         btn_row.addWidget(btn_clear)
         btn_row.addStretch()
-        btn_row.addWidget(btn_pay)
+        btn_row.addWidget(self._btn_pay)
 
         layout.addWidget(title)
         layout.addWidget(scroll, 1)
@@ -72,26 +72,29 @@ class CartScreen(QWidget):
                 self._items_layout.addWidget(row)
             self._items_layout.addStretch()
             self._total_label.setText(f"합계: {cart.get_subtotal():,}원")
+        self._btn_pay.setEnabled(not self._window.cart.is_empty())
 
     def update_item_qty(self, index: int, qty: int) -> None:
-        cart = self._window.cart
+        ctrl = self._window.controller
         try:
             if qty == 0:
-                cart.remove_item(index, {})
+                ctrl.remove_from_cart(index)
             else:
-                cart.update_quantity(index, qty, {})
+                ctrl.update_cart_qty(index, qty)
         except Exception as e:
             QMessageBox.warning(self, "오류", str(e))
         self.refresh()
 
     def remove_item(self, index: int) -> None:
-        self._window.cart.remove_item(index, {})
+        self._window.controller.remove_from_cart(index)
         self.refresh()
 
     def _clear_cart(self) -> None:
+        ctrl = self._window.controller
         cart = self._window.cart
         if not cart.is_empty():
-            cart.clear({})
+            cart.clear(ctrl.ingredients)
+            ctrl._save_ingredients()
         self.refresh()
 
 

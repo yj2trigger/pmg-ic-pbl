@@ -13,12 +13,12 @@ class IdleScreen(QWidget):
         layout = QVBoxLayout(self)
         layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        title = QLabel("EDK — Erica Drug King")
-        title.setFont(QFont("Malgun Gothic", 40, QFont.Weight.Bold))
+        title = QLabel("🍦 아이스크림 키오스크")
+        title.setFont(QFont("Malgun Gothic", 38, QFont.Weight.Bold))
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title.setStyleSheet("color: #89b4fa;")
 
-        sub = QLabel("증상에 맞는 의약품을 찾아드립니다.")
+        sub = QLabel("나만의 아이스크림을 만들어 보세요.")
         sub.setFont(QFont("Malgun Gothic", 18))
         sub.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
@@ -36,4 +36,4 @@ class IdleScreen(QWidget):
         layout.addStretch()
 
     def mousePressEvent(self, event) -> None:
-        self._window.go_to_symptom_select()
+        self._window.go_to_main_menu()

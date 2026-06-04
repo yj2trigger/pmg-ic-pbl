@@ -1,259 +1,83 @@
 [
   {
-    "group_id": "size",
-    "name": "크기",
-    "active_for": [
-      "coffee"
-    ],
+    "group_id": "shape",
+    "name": "모양",
+    "active_for": ["stick"],
     "options": [
-      {
-        "option_id": "size_s",
-        "name": "Small",
-        "extra_price": 0,
-        "required_ingredients_dic": {
-          "bean": 1
-        }
-      },
-      {
-        "option_id": "size_m",
-        "name": "Medium",
-        "extra_price": 1000,
-        "required_ingredients_dic": {
-          "bean": 2
-        }
-      },
-      {
-        "option_id": "size_l",
-        "name": "Large",
-        "extra_price": 1000,
-        "required_ingredients_dic": {
-          "bean": 3
-        }
-      }
+      {"option_id": "shape_rect",   "name": "직사각형", "extra_price": 0, "required_ingredients_dic": {"stick_base": 1}},
+      {"option_id": "shape_circle", "name": "원형",     "extra_price": 0, "required_ingredients_dic": {"stick_base": 1}},
+      {"option_id": "shape_star",   "name": "별",       "extra_price": 0, "required_ingredients_dic": {"stick_base": 1}},
+      {"option_id": "shape_heart",  "name": "하트",     "extra_price": 0, "required_ingredients_dic": {"stick_base": 1}}
     ]
   },
   {
-    "group_id": "temperature",
-    "name": "온도",
-    "active_for": [
-      "coffee"
-    ],
+    "group_id": "coating",
+    "name": "코팅 색상",
+    "active_for": ["stick"],
     "options": [
-      {
-        "option_id": "temp_hot",
-        "name": "HOT",
-        "extra_price": 0,
-        "required_ingredients_dic": {}
-      },
-      {
-        "option_id": "temp_ice",
-        "name": "ICE",
-        "extra_price": 0,
-        "required_ingredients_dic": {
-          "ice": 3
-        }
-      }
+      {"option_id": "coat_vanilla",    "name": "바닐라", "extra_price": 0, "required_ingredients_dic": {"mix_vanilla": 1}},
+      {"option_id": "coat_choco",      "name": "초코",   "extra_price": 0, "required_ingredients_dic": {"mix_choco": 1}},
+      {"option_id": "coat_strawberry", "name": "딸기",   "extra_price": 0, "required_ingredients_dic": {"mix_strawberry": 1}},
+      {"option_id": "coat_mint",       "name": "민트",   "extra_price": 0, "required_ingredients_dic": {"mix_mint": 1}},
+      {"option_id": "coat_mango",      "name": "망고",   "extra_price": 0, "required_ingredients_dic": {"mix_mango": 1}}
     ]
   },
   {
-    "group_id": "shot",
-    "name": "샷",
-    "active_for": [
-      "coffee"
-    ],
+    "group_id": "topping",
+    "name": "토핑",
+    "active_for": ["stick"],
     "options": [
-      {
-        "option_id": "shot_1",
-        "name": "1샷",
-        "extra_price": 0,
-        "required_ingredients_dic": {}
-      },
-      {
-        "option_id": "shot_2",
-        "name": "2샷",
-        "extra_price": 1000,
-        "required_ingredients_dic": {
-          "bean": 1
-        }
-      }
+      {"option_id": "top_none",         "name": "없음",        "extra_price": 0,    "required_ingredients_dic": {}},
+      {"option_id": "top_sprinkle",     "name": "스프링클",    "extra_price": 1000, "required_ingredients_dic": {"top_sprinkle": 1}},
+      {"option_id": "top_nuts",         "name": "견과류",      "extra_price": 1000, "required_ingredients_dic": {"top_nuts": 1}},
+      {"option_id": "top_choco_drizzle","name": "초코 드리즐", "extra_price": 1000, "required_ingredients_dic": {"top_choco_drizzle": 1}}
     ]
   },
   {
-    "group_id": "sweetness",
-    "name": "당도",
-    "active_for": [
-      "coffee"
-    ],
+    "group_id": "container",
+    "name": "용기",
+    "active_for": ["scoop"],
     "options": [
-      {
-        "option_id": "sweet_none",
-        "name": "없음",
-        "extra_price": 0,
-        "required_ingredients_dic": {}
-      },
-      {
-        "option_id": "sweet_mid",
-        "name": "보통",
-        "extra_price": 0,
-        "required_ingredients_dic": {
-          "syrup": 1
-        }
-      },
-      {
-        "option_id": "sweet_high",
-        "name": "많이",
-        "extra_price": 1000,
-        "required_ingredients_dic": {
-          "syrup": 2
-        }
-      }
+      {"option_id": "cont_cup",  "name": "컵", "extra_price": 0, "required_ingredients_dic": {"cup": 1}},
+      {"option_id": "cont_cone", "name": "콘", "extra_price": 0, "required_ingredients_dic": {"cone": 1}}
     ]
   },
   {
-    "group_id": "cream",
-    "name": "크림",
-    "active_for": [
-      "latte",
-      "cappuccino"
-    ],
+    "group_id": "scoop1",
+    "name": "1번 스쿱",
+    "active_for": ["scoop"],
     "options": [
-      {
-        "option_id": "cream_yes",
-        "name": "있음",
-        "extra_price": 1000,
-        "required_ingredients_dic": {
-          "cream": 1,
-          "milk": 1
-        }
-      },
-      {
-        "option_id": "cream_no",
-        "name": "없음",
-        "extra_price": 0,
-        "required_ingredients_dic": {}
-      }
+      {"option_id": "s1_vanilla",    "name": "바닐라", "extra_price": 0, "required_ingredients_dic": {"mix_vanilla": 1}},
+      {"option_id": "s1_choco",      "name": "초코",   "extra_price": 0, "required_ingredients_dic": {"mix_choco": 1}},
+      {"option_id": "s1_strawberry", "name": "딸기",   "extra_price": 0, "required_ingredients_dic": {"mix_strawberry": 1}},
+      {"option_id": "s1_mint",       "name": "민트",   "extra_price": 0, "required_ingredients_dic": {"mix_mint": 1}},
+      {"option_id": "s1_mango",      "name": "망고",   "extra_price": 0, "required_ingredients_dic": {"mix_mango": 1}}
     ]
   },
   {
-    "group_id": "flavor",
-    "name": "맛",
-    "active_for": [
-      "gummy"
-    ],
+    "group_id": "scoop2",
+    "name": "2번 스쿱",
+    "active_for": ["scoop"],
     "options": [
-      {
-        "option_id": "flv_straw",
-        "name": "딸기",
-        "extra_price": 0,
-        "required_ingredients_dic": {
-          "g_base": 1
-        }
-      },
-      {
-        "option_id": "flv_grape",
-        "name": "포도",
-        "extra_price": 0,
-        "required_ingredients_dic": {
-          "g_base": 1
-        }
-      },
-      {
-        "option_id": "flv_lemon",
-        "name": "레몬",
-        "extra_price": 1000,
-        "required_ingredients_dic": {
-          "g_base": 1
-        }
-      }
+      {"option_id": "s2_vanilla",    "name": "바닐라",    "extra_price": 1000, "required_ingredients_dic": {"mix_vanilla": 1}},
+      {"option_id": "s2_choco",      "name": "초코",      "extra_price": 1000, "required_ingredients_dic": {"mix_choco": 1}},
+      {"option_id": "s2_strawberry", "name": "딸기",      "extra_price": 1000, "required_ingredients_dic": {"mix_strawberry": 1}},
+      {"option_id": "s2_mint",       "name": "민트",      "extra_price": 1000, "required_ingredients_dic": {"mix_mint": 1}},
+      {"option_id": "s2_mango",      "name": "망고",      "extra_price": 1000, "required_ingredients_dic": {"mix_mango": 1}},
+      {"option_id": "scoop_stop2",   "name": "그만 쌓기", "extra_price": 0,    "required_ingredients_dic": {}}
     ]
   },
   {
-    "group_id": "effect",
-    "name": "성분",
-    "active_for": [
-      "gummy"
-    ],
+    "group_id": "scoop3",
+    "name": "3번 스쿱",
+    "active_for": ["scoop"],
     "options": [
-      {
-        "option_id": "eff_vitc",
-        "name": "비타민C",
-        "extra_price": 0,
-        "required_ingredients_dic": {
-          "vit_c": 1
-        }
-      },
-      {
-        "option_id": "eff_omega",
-        "name": "오메가3",
-        "extra_price": 1000,
-        "required_ingredients_dic": {
-          "omega3": 1
-        }
-      },
-      {
-        "option_id": "eff_col",
-        "name": "콜라겐",
-        "extra_price": 1000,
-        "required_ingredients_dic": {
-          "collagen": 1
-        }
-      }
-    ]
-  },
-  {
-    "group_id": "count",
-    "name": "수량(알)",
-    "active_for": [
-      "gummy"
-    ],
-    "options": [
-      {
-        "option_id": "cnt_5",
-        "name": "5알",
-        "extra_price": 0,
-        "required_ingredients_dic": {
-          "g_base": 1
-        }
-      },
-      {
-        "option_id": "cnt_10",
-        "name": "10알",
-        "extra_price": 1000,
-        "required_ingredients_dic": {
-          "g_base": 2
-        }
-      },
-      {
-        "option_id": "cnt_20",
-        "name": "20알",
-        "extra_price": 1000,
-        "required_ingredients_dic": {
-          "g_base": 4
-        }
-      }
-    ]
-  },
-  {
-    "group_id": "package",
-    "name": "패키지",
-    "active_for": [
-      "gummy"
-    ],
-    "options": [
-      {
-        "option_id": "pkg_solo",
-        "name": "낱개",
-        "extra_price": 0,
-        "required_ingredients_dic": {}
-      },
-      {
-        "option_id": "pkg_pouch",
-        "name": "파우치",
-        "extra_price": 1000,
-        "required_ingredients_dic": {
-          "pouch": 1
-        }
-      }
+      {"option_id": "s3_vanilla",    "name": "바닐라",    "extra_price": 1000, "required_ingredients_dic": {"mix_vanilla": 1}},
+      {"option_id": "s3_choco",      "name": "초코",      "extra_price": 1000, "required_ingredients_dic": {"mix_choco": 1}},
+      {"option_id": "s3_strawberry", "name": "딸기",      "extra_price": 1000, "required_ingredients_dic": {"mix_strawberry": 1}},
+      {"option_id": "s3_mint",       "name": "민트",      "extra_price": 1000, "required_ingredients_dic": {"mix_mint": 1}},
+      {"option_id": "s3_mango",      "name": "망고",      "extra_price": 1000, "required_ingredients_dic": {"mix_mango": 1}},
+      {"option_id": "scoop_stop3",   "name": "그만 쌓기", "extra_price": 0,    "required_ingredients_dic": {}}
     ]
   }
 ]

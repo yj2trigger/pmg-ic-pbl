@@ -17,10 +17,9 @@ from PyQt6.QtWidgets import QApplication
 
 from app.cart import Cart
 from app.data_manager import DataManager
-from app.drug_controller import DrugController
-from app.medicine import Medicine
+from app.ice_cream import IceCreamProduct
+from app.kiosk_controller import KioskController
 from app.payment import ChangeReserve
-from app.symptom import Symptom, SymptomGroup
 
 
 # ── QApplication (session 스코프: 한 번만 생성) ───────────────────────────
@@ -34,41 +33,23 @@ def qapp():
 
 # ── 도메인 객체 ─────────────────────────────────────────────────────────────
 @pytest.fixture
-def sample_medicines():
+def sample_products():
     return [
-        Medicine("m1", "타이레놀", 3000, True,  ["두통", "발열"], "해열진통제", "1회 1정", "과다복용 주의"),
-        Medicine("m2", "판콜에이", 5000, True,  ["감기", "기침"], "종합감기약", "1회 2정", "졸음 주의"),
-        Medicine("m3", "게보린",   2500, False, ["두통"],          "진통제",     "1회 1정", "공복 복용 금지"),
+        IceCreamProduct("p1", "스틱 아이스크림", 3000, True,  "stick"),
+        IceCreamProduct("p2", "스쿱 아이스크림", 4000, True,  "scoop"),
+        IceCreamProduct("p3", "품절 아이스크림", 2000, False, "stick"),
     ]
 
 
 @pytest.fixture
-def sample_symptoms():
-    return [
-        Symptom("s1", "두통",     is_emergency=False),
-        Symptom("s2", "감기",     is_emergency=False),
-        Symptom("s3", "심한 흉통", is_emergency=True),
-    ]
-
-
-@pytest.fixture
-def sample_symptom_group(sample_symptoms):
-    return SymptomGroup(sample_symptoms)
-
-
-@pytest.fixture
-def mock_dm(sample_medicines, sample_symptom_group):
+def mock_dm(sample_products):
     dm = MagicMock(spec=DataManager)
-    dm.load_medicines.return_value = sample_medicines
-    dm.load_symptoms.return_value = sample_symptom_group
+    dm.load_products.return_value = sample_products
+    dm.load_ingredients.return_value = {}
+    dm.load_option_groups.return_value = []
     dm.load_admin_config.return_value = {"password": "1234"}
     dm.load_change_reserve.return_value = {50000: 5, 10000: 10, 5000: 20, 1000: 50}
     return dm
-
-
-@pytest.fixture
-def controller(mock_dm):
-    return DrugController(mock_dm)
 
 
 @pytest.fixture
@@ -82,6 +63,12 @@ def change_reserve():
 
 
 @pytest.fixture
+def controller(mock_dm, sample_products, cart, change_reserve):
+    admin_config = mock_dm.load_admin_config.return_value
+    return KioskController(sample_products, {}, [], cart, change_reserve, admin_config, mock_dm)
+
+
+@pytest.fixture
 def mock_window(controller, cart, change_reserve):
     """KioskWindow 대신 MagicMock. controller/cart/change_reserve는 실제 객체."""
     win = MagicMock()
@@ -89,5 +76,4 @@ def mock_window(controller, cart, change_reserve):
     win.cart = cart
     win.change_reserve = change_reserve
     win._active_payment = None
-    win._current_symptom_name = None
     return win

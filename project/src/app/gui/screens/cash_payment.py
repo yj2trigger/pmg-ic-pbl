@@ -85,8 +85,9 @@ class CashPaymentScreen(QWidget):
         pmt = self._window._active_payment
         try:
             change_result = pmt.process()
-            self._window.cart.clear({})
+            self._window.cart.items = []
             self._window._active_payment = None
+            self._window.controller._save_after_payment()  # 재고 + 잔돈 JSON 저장
             self._window.go_to_receipt(
                 self._snapshot, self._final_amount, "현금", change_result
             )
