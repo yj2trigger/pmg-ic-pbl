@@ -39,12 +39,15 @@ class KioskController:
     def add_to_cart(self, product, options: dict, qty: int) -> None:
         item = OrderItem(product, options, qty)
         self.cart.add_item(item, self.ingredients)
+        self._save_ingredients()
 
     def remove_from_cart(self, index: int) -> None:
         self.cart.remove_item(index, self.ingredients)
+        self._save_ingredients()
 
     def update_cart_qty(self, index: int, qty: int) -> None:
         self.cart.update_quantity(index, qty, self.ingredients)
+        self._save_ingredients()
 
     def get_cart_subtotal(self) -> int:
         return self.cart.get_subtotal()
@@ -96,7 +99,9 @@ class KioskController:
 
     # ── 관리자 ─────────────────────────────────────────────────
     def authenticate_admin(self, pw: str) -> bool:
-        if pw != self.admin_config.get("password", ""):
+        from app.password_utils import verify_password
+        stored = self.admin_config.get("password", "")
+        if not verify_password(pw, stored):
             raise AdminAuthException("비밀번호가 올바르지 않습니다")
         return True
 
@@ -108,13 +113,17 @@ class KioskController:
         for p in self.products:
             if p.product_id == product_id:
                 p.base_price = price
-        self._save_products()
+                self._save_products()
+                return
+        raise KeyError(f"상품을 찾을 수 없습니다: {product_id}")
 
     def admin_toggle_product(self, product_id: str, flag: bool) -> None:
         for p in self.products:
             if p.product_id == product_id:
                 p.is_available = flag
-        self._save_products()
+                self._save_products()
+                return
+        raise KeyError(f"상품을 찾을 수 없습니다: {product_id}")
 
     def admin_add_cash(self, denomination: int, count: int) -> None:
         self.change_reserve.add_cash(denomination, count)
@@ -125,9 +134,6 @@ class KioskController:
     def admin_change_password(self, new_pw: str) -> None:
         self.admin_config["password"] = new_pw
         self.data_manager.save_admin_config(self.admin_config)
-
-    def admin_update_recipe(self, data: dict) -> None:
-        self.data_manager.save_recipes(data)
 
     # ── 내부 ──────────────────────────────────────────────────
     def _save_after_payment(self) -> None:

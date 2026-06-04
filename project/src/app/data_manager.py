@@ -1,8 +1,9 @@
 import json
 import os
 
-from app.medicine import Medicine
-from app.symptom import Symptom, SymptomGroup
+from app.ice_cream import IceCreamProduct
+from app.ingredient import Ingredient
+from app.option import OptionGroup
 
 
 class DataManager:
@@ -24,42 +25,33 @@ class DataManager:
         with open(self._path(filename), "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
 
-    def load_medicines(self) -> list[Medicine]:
-        raw = self._load("medicines.json", [])
-        return [Medicine(**item) for item in raw]
+    def load_products(self) -> list[IceCreamProduct]:
+        raw = self._load("products.json", [])
+        return [IceCreamProduct(**item) for item in raw]
 
-    def save_medicines(self, medicines: list[Medicine]) -> None:
+    def save_products(self, products: list[IceCreamProduct]) -> None:
         data = [
             {
-                "medicine_id": m.medicine_id,
-                "name": m.name,
-                "base_price": m.base_price,
-                "is_available": m.is_available,
-                "symptom_categories": m.symptom_categories,
-                "description": m.description,
-                "dosage": m.dosage,
-                "caution": m.caution,
+                "product_id": p.product_id,
+                "name": p.name,
+                "base_price": p.base_price,
+                "is_available": p.is_available,
+                "product_type": p.product_type,
             }
-            for m in medicines
+            for p in products
         ]
-        self._save("medicines.json", data)
+        self._save("products.json", data)
 
-    def load_symptoms(self) -> SymptomGroup:
-        raw = self._load("symptoms.json", [])
-        symptoms = [Symptom(**item) for item in raw]
-        return SymptomGroup(symptoms)
+    def load_ingredients(self) -> dict[str, Ingredient]:
+        raw = self._load("ingredients.json", [])
+        return {item["ingredient_id"]: Ingredient(**item) for item in raw}
 
-    def save_symptoms(self, group: SymptomGroup) -> None:
-        data = [
-            {
-                "symptom_id": s.symptom_id,
-                "name": s.name,
-                "is_emergency": s.is_emergency,
-                "description": s.description,
-            }
-            for s in group.symptoms
-        ]
-        self._save("symptoms.json", data)
+    def save_ingredients(self, ingredients_list: list) -> None:
+        self._save("ingredients.json", ingredients_list)
+
+    def load_option_groups(self) -> list[OptionGroup]:
+        raw = self._load("options.json", [])
+        return [OptionGroup(**item) for item in raw]
 
     def load_change_reserve(self) -> dict:
         return self._load("change_reserve.json", {})

@@ -1,15 +1,15 @@
 import unittest
 
 from app.cart import OrderItem, Cart
-from app.medicine import Medicine
+from app.ice_cream import IceCreamProduct
 
 
-def _make_medicine(price: int = 3000) -> Medicine:
-    return Medicine("m1", "타이레놀", price, True, ["두통"])
+def _make_product(price: int = 3000) -> IceCreamProduct:
+    return IceCreamProduct("p1", "스틱 아이스크림", price, True, "stick")
 
 
 def _make_item(price: int = 3000, qty: int = 1) -> OrderItem:
-    return OrderItem(_make_medicine(price), {}, qty)
+    return OrderItem(_make_product(price), {}, qty)
 
 
 class TestOrderItem(unittest.TestCase):
@@ -21,7 +21,7 @@ class TestOrderItem(unittest.TestCase):
         self.assertEqual(_make_item(3500, 2).calculate_subtotal(), 7000)
 
     def test_get_summary_no_options(self):
-        self.assertEqual(_make_item(3000, 1).get_summary(), "타이레놀 × 1")
+        self.assertEqual(_make_item(3000, 1).get_summary(), "스틱 아이스크림 × 1")
 
     def test_get_summary_qty_three(self):
         self.assertIn("× 3", _make_item(3000, 3).get_summary())

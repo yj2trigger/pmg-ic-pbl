@@ -35,7 +35,7 @@ jobs:
           cat diff.txt >> prompt.txt
 
           jq -n --rawfile text prompt.txt \
-            '{"contents":[{"parts":[{"text":$text}]}],"generationConfig":{"maxOutputTokens":2048}}' > payload.json
+            '{"contents":[{"parts":[{"text":$text}]}],"generationConfig":{"maxOutputTokens":8192}}' > payload.json
 
           RESPONSE=$(curl -s \
             "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent" \

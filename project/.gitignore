@@ -1,8 +1,11 @@
 build/
 dist/
 *.spec
+!kiosk.spec
 __pycache__/
 *.py[cod]
 *$py.class
 .pytest_cache/
+.claude/
+CLAUDE.md
 

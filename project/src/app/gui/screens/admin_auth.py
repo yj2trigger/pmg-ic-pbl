@@ -37,7 +37,7 @@ class AdminAuthScreen(QWidget):
         btn_confirm = QPushButton("확인")
         btn_cancel.setMinimumHeight(55)
         btn_confirm.setMinimumHeight(55)
-        btn_cancel.clicked.connect(lambda: self._window.go_to_symptom_select())
+        btn_cancel.clicked.connect(lambda: self._window.go_to_main_menu())
         btn_confirm.clicked.connect(self._authenticate)
         btn_row.addWidget(btn_cancel)
         btn_row.addWidget(btn_confirm)
@@ -57,11 +57,11 @@ class AdminAuthScreen(QWidget):
         self._pw_input.setFocus()
 
     def _authenticate(self) -> None:
-        from app.password_utils import verify_password
+        from app.exceptions import AdminAuthException
         pw = self._pw_input.text().strip()
-        config = self._window.controller._dm.load_admin_config() or {}
-        if verify_password(pw, config.get("password", "")):
+        try:
+            self._window.controller.authenticate_admin(pw)
             self._window.go_to_admin_menu()
-        else:
+        except AdminAuthException:
             self._error_label.setText("비밀번호가 올바르지 않습니다.")
             self._pw_input.clear()

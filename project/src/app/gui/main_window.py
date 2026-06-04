@@ -87,9 +87,7 @@ QComboBox {
     font-size: 14px;
     min-height: 36px;
 }
-QComboBox::drop-down {
-    border: none;
-}
+QComboBox::drop-down { border: none; }
 QComboBox QAbstractItemView {
     background-color: #313244;
     color: #cdd6f4;
@@ -104,9 +102,7 @@ QSpinBox {
     font-size: 14px;
     min-height: 36px;
 }
-QMessageBox {
-    background-color: #1e1e2e;
-}
+QMessageBox { background-color: #1e1e2e; }
 """
 
 
@@ -117,20 +113,17 @@ class KioskWindow(QMainWindow):
         self.cart = cart
         self.change_reserve = change_reserve
         self._active_payment = None
-        self._current_symptom_name: str | None = None
+        self._customize_announced = False
         self.voice = VoiceService()
-        self.setWindowTitle("EDK — Erica Drug King")
-        self.resize(900, 700)
+        self.setWindowTitle("🍦 아이스크림 키오스크")
         self.setStyleSheet(STYLESHEET)
 
         self._stack = QStackedWidget()
         self.setCentralWidget(self._stack)
 
         from app.gui.screens.idle import IdleScreen
-        from app.gui.screens.symptom_select import SymptomSelectScreen
-        from app.gui.screens.medicine_list import MedicineListScreen
-        from app.gui.screens.medicine_detail import MedicineDetailScreen
-        from app.gui.screens.emergency import EmergencyScreen
+        from app.gui.screens.main_menu import MainMenuScreen
+        from app.gui.screens.customize import CustomizeScreen
         from app.gui.screens.cart import CartScreen
         from app.gui.screens.payment_method import PaymentMethodScreen
         from app.gui.screens.cash_payment import CashPaymentScreen
@@ -139,10 +132,8 @@ class KioskWindow(QMainWindow):
         from app.gui.screens.admin_menu import AdminMenuScreen
 
         self._idle = IdleScreen(self)
-        self._symptom_select = SymptomSelectScreen(self)
-        self._medicine_list = MedicineListScreen(self)
-        self._medicine_detail = MedicineDetailScreen(self)
-        self._emergency = EmergencyScreen(self)
+        self._main_menu = MainMenuScreen(self)
+        self._customize = CustomizeScreen(self)
         self._cart = CartScreen(self)
         self._payment_method = PaymentMethodScreen(self)
         self._cash_payment = CashPaymentScreen(self)
@@ -151,42 +142,33 @@ class KioskWindow(QMainWindow):
         self._admin_menu = AdminMenuScreen(self)
 
         for screen in (
-            self._idle, self._symptom_select, self._medicine_list,
-            self._medicine_detail, self._emergency, self._cart,
-            self._payment_method, self._cash_payment, self._receipt,
-            self._admin_auth, self._admin_menu,
+            self._idle, self._main_menu, self._customize,
+            self._cart, self._payment_method, self._cash_payment,
+            self._receipt, self._admin_auth, self._admin_menu,
         ):
             self._stack.addWidget(screen)
 
         self.go_to_idle()
 
-    # ── Navigation API ───────────────────────────────────────────
-
     def go_to_idle(self) -> None:
         if not self.cart.is_empty():
-            self.cart.clear({})
+            self.cart.clear(self.controller.ingredients)  # 세션 포기: 재고 복원
+            self.controller._save_ingredients()
         self._active_payment = None
+        self._customize_announced = False
         self._stack.setCurrentWidget(self._idle)
         self.voice.speak("화면을 터치하면 시작합니다")
 
-    def go_to_symptom_select(self) -> None:
-        self._symptom_select.refresh()
-        self._stack.setCurrentWidget(self._symptom_select)
-        self.voice.speak("증상을 선택해 주세요")
+    def go_to_main_menu(self) -> None:
+        self._main_menu.refresh()
+        self._stack.setCurrentWidget(self._main_menu)
 
-    def go_to_medicine_list(self, symptom_name: str | None) -> None:
-        self._current_symptom_name = symptom_name
-        self._medicine_list.setup(symptom_name)
-        self._stack.setCurrentWidget(self._medicine_list)
-
-    def go_to_medicine_detail(self, medicine) -> None:
-        self._medicine_detail.setup(medicine)
-        self._stack.setCurrentWidget(self._medicine_detail)
-
-    def go_to_emergency(self, symptom_name: str) -> None:
-        self._emergency.setup(symptom_name)
-        self._stack.setCurrentWidget(self._emergency)
-        self.voice.speak("응급 증상입니다. 119에 신고하세요")
+    def go_to_customize(self, product) -> None:
+        self._customize.setup(product)
+        self._stack.setCurrentWidget(self._customize)
+        if not self._customize_announced:
+            self._customize_announced = True
+            self.voice.speak("옵션을 선택해 주세요")
 
     def go_to_cart(self) -> None:
         self._cart.refresh()
@@ -212,7 +194,8 @@ class KioskWindow(QMainWindow):
         pmt = CardPayment(final_amount)
         try:
             pmt.process()
-            self.cart.clear({})
+            self.cart.items = []
+            self.controller._save_after_payment()  # 재고 + 잔돈 JSON 저장
             self.go_to_receipt(snapshot, final_amount, "카드")
         except Exception as e:
             QMessageBox.warning(self, "카드 결제 실패", str(e))

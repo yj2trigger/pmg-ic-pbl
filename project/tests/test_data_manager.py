@@ -4,8 +4,8 @@ import tempfile
 import pytest
 
 from app.data_manager import DataManager
-from app.medicine import Medicine
-from app.symptom import Symptom, SymptomGroup
+from app.ice_cream import IceCreamProduct
+from app.ingredient import Ingredient
 
 
 @pytest.fixture
@@ -19,76 +19,57 @@ def dm(tmp_data_dir):
     return DataManager(tmp_data_dir)
 
 
-class TestLoadSaveMedicines:
+class TestLoadSaveProducts:
     def test_load_empty(self, dm):
-        assert dm.load_medicines() == []
+        assert dm.load_products() == []
 
     def test_roundtrip(self, dm):
-        medicines = [
-            Medicine("MED-001", "타이레놀", 5500, True, ["두통", "발열"], "설명", "1일 3회", "주의")
-        ]
-        dm.save_medicines(medicines)
-        loaded = dm.load_medicines()
+        products = [IceCreamProduct("P-001", "스틱", 3000, True, "stick")]
+        dm.save_products(products)
+        loaded = dm.load_products()
         assert len(loaded) == 1
-        assert loaded[0].medicine_id == "MED-001"
-        assert loaded[0].symptom_categories == ["두통", "발열"]
+        assert loaded[0].product_id == "P-001"
+        assert loaded[0].product_type == "stick"
 
     def test_save_creates_file(self, dm, tmp_data_dir):
-        dm.save_medicines([Medicine("MED-001", "타이레놀", 5500, True, [])])
-        assert os.path.exists(os.path.join(tmp_data_dir, "medicines.json"))
+        dm.save_products([IceCreamProduct("P-001", "스틱", 3000, True, "stick")])
+        assert os.path.exists(os.path.join(tmp_data_dir, "products.json"))
 
-    def test_multiple_medicines(self, dm):
-        medicines = [
-            Medicine("MED-001", "타이레놀", 5500, True, ["두통"]),
-            Medicine("MED-002", "판콜", 4000, True, ["감기"]),
+    def test_multiple_products(self, dm):
+        products = [
+            IceCreamProduct("P-001", "스틱", 3000, True, "stick"),
+            IceCreamProduct("P-002", "스쿱", 4000, True, "scoop"),
         ]
-        dm.save_medicines(medicines)
-        loaded = dm.load_medicines()
+        dm.save_products(products)
+        loaded = dm.load_products()
         assert len(loaded) == 2
-        assert loaded[1].name == "판콜"
+        assert loaded[1].name == "스쿱"
 
     def test_is_available_preserved(self, dm):
-        medicines = [Medicine("MED-001", "품절약", 1000, False, [])]
-        dm.save_medicines(medicines)
-        assert dm.load_medicines()[0].is_available is False
+        dm.save_products([IceCreamProduct("P-002", "품절", 1000, False, "scoop")])
+        assert dm.load_products()[0].is_available is False
+
+    def test_base_price_preserved(self, dm):
+        dm.save_products([IceCreamProduct("P-001", "스틱", 3500, True, "stick")])
+        assert dm.load_products()[0].base_price == 3500
 
 
-class TestLoadSaveSymptoms:
-    def test_load_empty_returns_symptom_group(self, dm):
-        group = dm.load_symptoms()
-        assert isinstance(group, SymptomGroup)
-        assert group.symptoms == []
+class TestLoadSaveIngredients:
+    def test_load_empty(self, dm):
+        assert dm.load_ingredients() == {}
 
     def test_roundtrip(self, dm):
-        group = SymptomGroup([
-            Symptom("SYM-001", "두통", False, "머리 통증"),
-            Symptom("SYM-002", "흉통", True, "응급"),
-        ])
-        dm.save_symptoms(group)
-        loaded = dm.load_symptoms()
-        assert loaded.get_symptom("SYM-001").name == "두통"
-        assert loaded.get_symptom("SYM-002").is_emergency is True
+        ingredients_list = [
+            {"ingredient_id": "mix_vanilla", "name": "바닐라 믹스", "stock": 10, "max_capacity": 50, "unit": "봉"}
+        ]
+        dm.save_ingredients(ingredients_list)
+        loaded = dm.load_ingredients()
+        assert "mix_vanilla" in loaded
+        assert loaded["mix_vanilla"].name == "바닐라 믹스"
 
-    def test_emergency_preserved(self, dm):
-        group = SymptomGroup([Symptom("SYM-001", "흉통", True)])
-        dm.save_symptoms(group)
-        loaded = dm.load_symptoms()
-        assert loaded.get_emergency_symptoms()[0].symptom_id == "SYM-001"
-
-    def test_nonexistent_symptom_returns_none(self, dm):
-        group = SymptomGroup([Symptom("SYM-001", "두통")])
-        dm.save_symptoms(group)
-        loaded = dm.load_symptoms()
-        assert loaded.get_symptom("SYM-999") is None
-
-    def test_symptom_group_lookup_by_id(self, dm):
-        group = SymptomGroup([
-            Symptom("SYM-001", "두통"),
-            Symptom("SYM-002", "발열"),
-        ])
-        dm.save_symptoms(group)
-        loaded = dm.load_symptoms()
-        assert loaded.get_symptom("SYM-002").name == "발열"
+    def test_save_creates_file(self, dm, tmp_data_dir):
+        dm.save_ingredients([{"ingredient_id": "i1", "name": "재료", "stock": 5, "max_capacity": 20, "unit": "개"}])
+        assert os.path.exists(os.path.join(tmp_data_dir, "ingredients.json"))
 
 
 class TestAdminAndChangeReserve:

@@ -1,5 +1,5 @@
 from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QFrame,
+    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QFrame, QMessageBox,
 )
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
@@ -16,27 +16,24 @@ class MainMenuScreen(QWidget):
         layout.setContentsMargins(40, 30, 40, 30)
         layout.setSpacing(14)
 
-        title = QLabel("주문 메뉴")
+        title = QLabel("🍦 주문 메뉴")
         title.setFont(QFont("Malgun Gothic", 28, QFont.Weight.Bold))
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        # Cart summary panel
         self._cart_frame = QFrame()
-        self._cart_frame.setObjectName("cart_frame")
         self._cart_inner = QVBoxLayout(self._cart_frame)
         self._cart_inner.setContentsMargins(12, 8, 12, 8)
         self._cart_frame.hide()
 
-        # Product buttons
-        self._btn_coffee = QPushButton("☕  커피 주문")
-        self._btn_gummy = QPushButton("🍬  구미 주문")
-        for btn in (self._btn_coffee, self._btn_gummy):
-            btn.setMinimumHeight(70)
-            btn.setFont(QFont("Malgun Gothic", 18))
+        self._btn_stick = QPushButton("🍦  스틱 아이스크림")
+        self._btn_scoop = QPushButton("🍨  스쿱 아이스크림")
+        for btn in (self._btn_stick, self._btn_scoop):
+            btn.setMinimumHeight(80)
+            btn.setFont(QFont("Malgun Gothic", 20))
 
         row = QHBoxLayout()
-        row.addWidget(self._btn_coffee)
-        row.addWidget(self._btn_gummy)
+        row.addWidget(self._btn_stick)
+        row.addWidget(self._btn_scoop)
 
         btn_cart = QPushButton("🛒  장바구니 / 결제")
         btn_admin = QPushButton("🔑  관리자")
@@ -45,12 +42,8 @@ class MainMenuScreen(QWidget):
         btn_admin.setMinimumHeight(50)
         btn_back.setMinimumHeight(44)
 
-        self._btn_coffee.clicked.connect(
-            lambda: self._window.go_to_product_list("coffee")
-        )
-        self._btn_gummy.clicked.connect(
-            lambda: self._window.go_to_product_list("gummy")
-        )
+        self._btn_stick.clicked.connect(self._go_stick)
+        self._btn_scoop.clicked.connect(self._go_scoop)
         btn_cart.clicked.connect(lambda: self._window.go_to_cart())
         btn_admin.clicked.connect(lambda: self._window.go_to_admin_auth())
         btn_back.clicked.connect(lambda: self._window.go_to_idle())
@@ -63,10 +56,23 @@ class MainMenuScreen(QWidget):
         layout.addStretch()
         layout.addWidget(btn_back)
 
+    def _go_product(self, product_type: str, name: str) -> None:
+        ctrl = self._window.controller
+        product = next((p for p in ctrl.get_available_products() if p.product_type == product_type), None)
+        if product:
+            self._window.go_to_customize(product)
+        else:
+            QMessageBox.information(self, "품절", f"{name}이(가) 현재 품절입니다.")
+
+    def _go_stick(self) -> None:
+        self._go_product("stick", "스틱 아이스크림")
+
+    def _go_scoop(self) -> None:
+        self._go_product("scoop", "스쿱 아이스크림")
+
     def refresh(self) -> None:
         ctrl = self._window.controller
 
-        # Rebuild cart summary
         while self._cart_inner.count():
             child = self._cart_inner.takeAt(0)
             if child.widget():
@@ -87,11 +93,6 @@ class MainMenuScreen(QWidget):
             self._cart_inner.addWidget(total_lbl)
             self._cart_frame.show()
 
-        # Button availability
         products = ctrl.get_available_products()
-        self._btn_coffee.setEnabled(
-            any(p.product_type == "coffee" for p in products)
-        )
-        self._btn_gummy.setEnabled(
-            any(p.product_type == "gummy" for p in products)
-        )
+        self._btn_stick.setEnabled(any(p.product_type == "stick" for p in products))
+        self._btn_scoop.setEnabled(any(p.product_type == "scoop" for p in products))
