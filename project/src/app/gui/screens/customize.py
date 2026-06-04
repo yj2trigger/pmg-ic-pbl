@@ -80,12 +80,12 @@ class CustomizeScreen(QWidget):
         self._options_area = QWidget()
         self._options_layout = QVBoxLayout(self._options_area)
         self._options_layout.setSpacing(10)
-        scroll = QScrollArea()
-        scroll.setWidget(self._options_area)
-        scroll.setWidgetResizable(True)
-        scroll.setMinimumWidth(340)
-        scroll.setMinimumHeight(0)
-        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self._scroll = QScrollArea()
+        self._scroll.setWidget(self._options_area)
+        self._scroll.setWidgetResizable(True)
+        self._scroll.setMinimumWidth(340)
+        self._scroll.setMinimumHeight(0)
+        self._scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
 
         self._preview_container = QFrame()
         self._preview_container.setMinimumWidth(240)
@@ -99,7 +99,7 @@ class CustomizeScreen(QWidget):
         self._preview_layout.addStretch()
         self._preview_layout.addWidget(self._preview_label)
 
-        body.addWidget(scroll, 3)
+        body.addWidget(self._scroll, 3)
         body.addWidget(self._preview_container, 2)
 
         qty_row = QHBoxLayout()
@@ -140,6 +140,7 @@ class CustomizeScreen(QWidget):
         outer.addLayout(btn_row)
 
     def setup(self, product) -> None:
+        self._scroll.verticalScrollBar().setValue(0)
         self._product = product
         self._title.setText(f"{product.get_display_name()}  ({product.base_price:,}원~)")
         self._error_label.setText("")
