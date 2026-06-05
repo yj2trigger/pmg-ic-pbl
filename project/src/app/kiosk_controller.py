@@ -175,12 +175,7 @@ class KioskController:
         ])
 
     def _save_products(self) -> None:
-        self.data_manager.save_products([
-            {"product_id": p.product_id, "name": p.name,
-             "base_price": p.base_price, "is_available": p.is_available,
-             "product_type": p.product_type}
-            for p in self.products
-        ])
+        self.data_manager.save_products(self.products)
 
     # def _update_stats(self) -> None:  # dead code
     #     pass
