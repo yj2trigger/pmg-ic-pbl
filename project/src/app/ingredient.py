@@ -1,4 +1,22 @@
-#관리자가 인스턴스 생성
+# ──────────────────────────────────────────────────────────────────────────────
+# ingredient.py — 아이스크림 재료 도메인 클래스
+#
+# [역할]
+#   Ingredient: 재료 ID·이름·재고·최대 용량을 보관하고
+#   재고 차감(deduct)·보충(replenish)·가용 여부(is_available) 연산을 제공한다.
+#
+# [재고 차감 시점]
+#   Cart.add_item() 호출 시 즉시 차감. 결제 완료가 아니라 장바구니 추가 시점에 차감한다.
+#   이유: 동시 접근 없는 단일 키오스크지만, 재고 부족 옵션을 즉시 비활성화하기 위해.
+#   세션 포기 시 Cart.clear() → replenish()로 복원된다.
+#
+# [의존성]
+#   import: app.exceptions (InsufficientStockException, StockOverflowException)
+#   이 파일을 사용하는 곳:
+#     data_manager.py → load_ingredients()에서 Ingredient(**item) 생성
+#     cart.py → add_item(), remove_item(), update_quantity(), clear()
+#     kiosk_controller.py → admin_replenish()
+# ──────────────────────────────────────────────────────────────────────────────
 
 from app.exceptions import InsufficientStockException, StockOverflowException
 

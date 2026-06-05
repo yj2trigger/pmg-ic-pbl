@@ -1,3 +1,14 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# stick_preview.py — 스틱 아이스크림 실시간 미리보기 커스텀 위젯
+# [역할]  커스터마이즈 화면에서 모양·색상·토핑 선택에 따라 즉시 갱신되는 QPainter 위젯.
+# [선택 섹션]
+#   - 지원 모양: rect(기본), circle, star, heart
+#   - 토핑: sprinkle, nuts, choco_drizzle — 위치는 RNG 시드 고정으로 매번 동일
+#   - 막대를 먼저 그린 뒤 바디로 덮어 자연스러운 연결 구현
+# [의존성]
+#   import  : math, random, PyQt6, app.gui.widgets.colors.FLAVOR_COLORS
+#   사용하는 곳 : customize.py → update_options() 호출로 실시간 갱신
+# ──────────────────────────────────────────────────────────────────────────────
 import math
 import random
 

@@ -1,3 +1,22 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# admin_auth.py — 관리자 인증 화면 (비밀번호 입력 → 관리자 메뉴 진입)
+#
+# [역할]
+#   비밀번호 입력 QLineEdit(Password 모드)과 확인/취소 버튼만 있는 단순 인증 화면.
+#   확인 버튼 또는 Enter 키로 authenticate_admin()을 호출하고,
+#   성공 시 go_to_admin_menu(), 실패 시 오류 메시지를 표시한다.
+#
+# [설계 원칙]
+#   - reset(): go_to_admin_auth() 진입 시 이전 입력값·오류 메시지를 초기화.
+#   - AdminAuthException import를 _authenticate() 내부에 지연:
+#     순환 import 없이 예외 클래스만 필요할 때 로드.
+#
+# [의존성]
+#   import: PyQt6.QtWidgets, PyQt6.QtCore, PyQt6.QtGui
+#   이 파일을 사용하는 곳:
+#     main_window.py → self._admin_auth = AdminAuthScreen(self)
+# ──────────────────────────────────────────────────────────────────────────────
+
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QLineEdit,
 )
