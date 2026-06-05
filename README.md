@@ -73,12 +73,17 @@ classDiagram
         +get_available_products() list
         +add_to_cart(product, options, qty)
         +start_cash_payment()
+        +insert_cash(denomination) int
         +process_cash_payment() dict
-        +start_card_payment()
+        +start_card_payment(fail_reason)
         +process_card_payment() bool
         +authenticate_admin(pw) bool
         +admin_replenish(ingredient_id, amount)
         +admin_set_price(product_id, price)
+        +admin_toggle_product(product_id, flag)
+        +admin_add_cash(denomination, count)
+        +admin_change_password(new_pw)
+        -_save_after_payment()
     }
 
     class Payment {
