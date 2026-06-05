@@ -1,3 +1,28 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# data_manager.py — JSON 기반 영속성 계층
+#
+# [역할]
+#   모든 JSON 파일 읽기·쓰기를 단일 클래스로 캡슐화한다.
+#   도메인 객체(IceCreamProduct, Ingredient, OptionGroup)를 직접 생성해 반환한다.
+#
+# [저장 파일 목록]
+#   products.json       — 상품 목록 (IceCreamProduct)
+#   ingredients.json    — 재료 재고 (Ingredient)
+#   options.json        — 옵션 그룹/옵션 정의 (OptionGroup, 읽기 전용)
+#   change_reserve.json — 잔돈 보유 현황 {"권종": 장수}
+#   admin_config.json   — 관리자 설정 {"password": "scrypt$..."}
+#
+# [내부 구조]
+#   _save()/_load(): 공통 파일 I/O. 모든 public save*/load* 메서드가 위임.
+#   경로 결정은 main.py의 DATA_DIR에서 받아 __init__에서 고정.
+#
+# [의존성]
+#   import: json, os, ice_cream, ingredient, option
+#   이 파일을 사용하는 곳:
+#     main.py → DataManager(DATA_DIR) 인스턴스 생성 후 kiosk_controller에 전달
+#     kiosk_controller.py → _save_after_payment(), _save_ingredients() 등
+# ──────────────────────────────────────────────────────────────────────────────
+
 import json
 import os
 

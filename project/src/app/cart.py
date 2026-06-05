@@ -1,6 +1,24 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# cart.py — 장바구니 도메인 (OrderItem + Cart)
+#
+# [역할]
+#   OrderItem: 상품 1종의 옵션·수량·가격 계산·재료 소비량 계산을 담당한다.
+#   Cart: OrderItem 목록 관리. add/remove/update 시 Ingredient 재고를 즉시 반영한다.
+#
+# [재고 차감 설계 원칙]
+#   재고는 장바구니에 추가하는 시점(add_item)에 차감하고,
+#   수량 변경(update_quantity)은 델타(delta)만 추가/복원 — 전체 재계산 없이 최소 변경.
+#   세션 포기·삭제·수량 감소 시 replenish()로 복원.
+#
+# [의존성]
+#   import: app.exceptions (InsufficientStockException)
+#   이 파일을 사용하는 곳:
+#     kiosk_controller.py → add_to_cart(), remove_from_cart(), update_cart_qty()
+#     main_window.py → cart.items 직접 접근 (리팩터링 대상)
+# ──────────────────────────────────────────────────────────────────────────────
+
 from app.exceptions import InsufficientStockException
 
-# runtime에 인스턴스를 생성하는 객체들
 class OrderItem: # 한종류 상품의 총 가격과 구매 내역
     def __init__(self, product, selected_options: dict, quantity: int):
         self.product = product

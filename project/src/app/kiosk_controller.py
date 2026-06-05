@@ -1,3 +1,27 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# kiosk_controller.py — GUI와 도메인 사이의 파사드(Facade). 모든 비즈니스 로직 진입점.
+#
+# [역할]
+#   GUI가 직접 도메인 객체를 조작하지 않도록 중간 계층 역할.
+#   상품 조회, 장바구니 관리, 결제 처리, 관리자 기능, 저장 트리거를 단일 인터페이스로 노출.
+#
+# [설계 원칙]
+#   - GUI는 KioskController만 바라본다 (단방향 의존).
+#     Cart·Ingredient·Product를 직접 import하지 않고, 이 파일 메서드만 호출.
+#   - 단, main_window.py 일부 경로(go_to_cash_payment, go_to_card_payment)가
+#     Cart.items를 직접 참조 — 리팩터링 대상으로 표시됨.
+#   - _save_after_payment(): 현금/카드 결제 완료 공통 경로 — 재료+잔돈 JSON 저장.
+#   - _active_payment: 진행 중인 결제 객체. 미결제 시 None. GUI에서도 참조함.
+#
+# [의존성]
+#   import: app.cart (OrderItem, Cart), app.payment (CashPayment, CardPayment),
+#           app.exceptions (AdminAuthException)
+#   이 파일을 사용하는 곳:
+#     main.py → KioskController(...) 인스턴스 생성
+#     app.py → run_gui(controller, ...) 로 GUI에 전달
+#     gui/main_window.py → self.controller.* 호출
+# ──────────────────────────────────────────────────────────────────────────────
+
 from app.cart import OrderItem, Cart
 from app.payment import CashPayment, CardPayment
 from app.exceptions import AdminAuthException

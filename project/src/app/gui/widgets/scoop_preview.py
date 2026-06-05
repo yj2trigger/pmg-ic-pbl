@@ -1,3 +1,23 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# scoop_preview.py — 스쿱 아이스크림 실시간 미리보기 커스텀 위젯
+#
+# [역할]
+#   커스터마이즈 화면에서 용기(컵/콘)·스쿱 맛 선택에 따라 즉시 갱신되는 QPainter 위젯.
+#
+# [핵심 구조]
+#   - ScoopPreviewWidget: update_options() 호출 → repaint. 컵/콘 두 가지 용기 지원.
+#   - 컵형: 1~3개 스쿱을 입체감 있게 좌/우/앞 배치.
+#   - 콘형: 아래에서 위로 스쿱을 20% 겹쳐 쌓음.
+#   - 모듈 수준 함수 (_draw_scoop, _draw_cup, _draw_cone): 도형 그리기 전담.
+#     ScoopPreviewWidget과 함께 이 파일 안에만 존재. 외부에서 직접 호출하지 않음.
+#
+# [의존성]
+#   import: PyQt6.QtCore, PyQt6.QtGui, PyQt6.QtWidgets
+#           app.gui.widgets.colors (FLAVOR_COLORS)
+#   이 파일을 사용하는 곳:
+#     gui/screens/customize.py → ScoopPreviewWidget() 동적 생성 (스쿱 상품 선택 시)
+# ──────────────────────────────────────────────────────────────────────────────
+
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QColor, QPainter, QPainterPath, QPen, QBrush
 from PyQt6.QtWidgets import QWidget
