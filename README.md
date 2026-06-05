@@ -59,6 +59,7 @@ classDiagram
         +remove_item(index, ingredients)
         +update_quantity(index, qty, ingredients)
         +get_subtotal() int
+        +is_empty() bool
         +clear(ingredients)
     }
 
@@ -71,12 +72,21 @@ classDiagram
         +dict admin_config
         +DataManager data_manager
         +get_available_products() list
+        +get_option_groups(product) list
+        +get_unavailable_options(product, selected_options) set
         +add_to_cart(product, options, qty)
+        +remove_from_cart(index)
+        +update_cart_qty(index, qty)
+        +get_cart_subtotal() int
+        +get_discount() int
+        +get_final_amount() int
         +start_cash_payment()
         +insert_cash(denomination) int
+        +can_complete_payment() bool
         +process_cash_payment() dict
         +start_card_payment(fail_reason)
         +process_card_payment() bool
+        +cancel_payment() int
         +authenticate_admin(pw) bool
         +admin_replenish(ingredient_id, amount)
         +admin_set_price(product_id, price)
@@ -84,6 +94,9 @@ classDiagram
         +admin_add_cash(denomination, count)
         +admin_change_password(new_pw)
         -_save_after_payment()
+        -_save_ingredients()
+        -_save_products()
+        +log(msg)
     }
 
     class Payment {
