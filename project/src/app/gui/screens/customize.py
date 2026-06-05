@@ -146,16 +146,17 @@ class CustomizeScreen(QWidget):
         body.addWidget(self._preview_container, 2) # 우 2 비율
 
         # 수량 선택 행
-        # QSpinBox 대신 ▼/▲ QPushButton으로 구현: 터치스크린에서 서브버튼 클릭 영역 불일치 버그 방지
+        # QSpinBox 대신 -/+ QPushButton으로 구현: 터치스크린에서 서브버튼 클릭 영역 불일치 버그 방지
         qty_row = QHBoxLayout()
         qty_label = QLabel("수량:")
         qty_label.setFont(QFont("Malgun Gothic", 15))
         self._qty_value = 1
-        btn_minus = QPushButton("▼")
-        btn_plus  = QPushButton("▲")
+        btn_minus = QPushButton("-")
+        btn_plus  = QPushButton("+")
         for b in (btn_minus, btn_plus):
-            # Segoe UI: Malgun Gothic Bold는 ▼▲ 글리프 미포함 → 폴백 렌더링(|) 발생
-            b.setFont(QFont("Segoe UI", 16, QFont.Weight.Bold))
+            # padding 재정의: 글로벌 스타일시트 padding:10px 20px이 44px 버튼에 적용되면
+            # 텍스트 영역(44-40=4px)이 사라져 문자가 뭉개짐
+            b.setStyleSheet("padding: 2px; font-size: 20px; font-weight: bold;")
             b.setFixedSize(44, 44)
         self._qty_label = QLabel("1")
         self._qty_label.setFont(QFont("Malgun Gothic", 15))
