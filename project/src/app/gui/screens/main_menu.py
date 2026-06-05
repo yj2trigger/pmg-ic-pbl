@@ -1,3 +1,13 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# main_menu.py — 상품 선택 화면 (스틱 / 스쿱 버튼 + 장바구니 요약 바)
+# [역할]  메인 메뉴 화면 위젯. 사용자가 첫 번째로 마주치는 주문 진입 화면.
+# [선택 섹션]
+#   - 장바구니 요약 바: 카트가 비어 있으면 숨김, 항목 있으면 합계까지 표시
+#   - 상품 버튼: 재고 부족 상품은 비활성화
+# [의존성]
+#   import  : PyQt6, app.gui.screens (구현 없음, QWidget 상속)
+#   사용하는 곳 : main_window.py → QStackedWidget 에 추가 후 show_screen() 으로 전환
+# ──────────────────────────────────────────────────────────────────────────────
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QFrame, QMessageBox,
 )
@@ -6,12 +16,14 @@ from PyQt6.QtGui import QFont
 
 
 class MainMenuScreen(QWidget):
+    # main_window.py 에서 생성 시 window 참조 주입. controller 접근 경로: self._window.controller
     def __init__(self, window) -> None:
         super().__init__()
         self._window = window
         self._setup_ui()
 
     def _setup_ui(self) -> None:
+        # 고정 레이아웃 구성. 버튼 연결까지 완료. 동적 데이터는 refresh() 에서 처리.
         layout = QVBoxLayout(self)
         layout.setContentsMargins(40, 30, 40, 30)
         layout.setSpacing(14)
@@ -57,6 +69,9 @@ class MainMenuScreen(QWidget):
         layout.addWidget(btn_back)
 
     def _go_product(self, product_type: str, name: str) -> None:
+        # 재고 있는 상품이면 커스터마이즈 화면으로 이동, 없으면 품절 다이얼로그 표시.
+        # 호출: _go_stick(), _go_scoop() → 버튼 clicked 시그널 경유.
+        # 경계: get_available_products() 반환 빈 리스트면 반드시 품절 분기로 진입.
         ctrl = self._window.controller
         product = next((p for p in ctrl.get_available_products() if p.product_type == product_type), None)
         if product:
@@ -71,6 +86,9 @@ class MainMenuScreen(QWidget):
         self._go_product("scoop", "스쿱 아이스크림")
 
     def refresh(self) -> None:
+        # 화면 전환 직전 main_window.py 가 호출. 장바구니 요약 바를 전부 재생성하고
+        # 재고 상태에 따라 스틱/스쿱 버튼 활성화 여부를 갱신한다.
+        # 기존 위젯을 deleteLater() 로 지워야 PyQt6 메모리 누수를 방지할 수 있음.
         ctrl = self._window.controller
 
         while self._cart_inner.count():

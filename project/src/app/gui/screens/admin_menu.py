@@ -1,3 +1,15 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# admin_menu.py — 관리자 메뉴 화면 (상품·재료·현금·비밀번호·종료 관리)
+# [역할]  비밀번호 인증 후 진입하는 관리자 전용 화면. 모든 조작은 KioskController를 거친다
+# [선택 섹션]  각 기능은 전용 내부 다이얼로그(_ToggleProductDialog 등)에서 입력받고
+#             AdminMenuScreen이 컨트롤러 메서드를 호출하는 구조 — 화면과 로직 분리됨
+# [의존성]
+#   컨트롤러  : ctrl.admin_toggle_product(), ctrl.admin_replenish(), ctrl.admin_change_password()
+#              ctrl.get_available_products(), ctrl.products, ctrl.ingredients
+#              ctrl.data_manager.save_change_reserve()
+#   직접 접근 : window.change_reserve (ChangeReserve)
+#   호출처   : main_window.py → self._admin_menu = AdminMenuScreen(self)
+# ──────────────────────────────────────────────────────────────────────────────
 import sys
 
 from PyQt6.QtWidgets import (
@@ -9,12 +21,14 @@ from PyQt6.QtGui import QFont
 
 
 class AdminMenuScreen(QWidget):
+    # 관리자 메뉴 화면. 버튼 7개 → 각 _메서드 → 다이얼로그 → 컨트롤러 호출
     def __init__(self, window) -> None:
         super().__init__()
         self._window = window
         self._setup_ui()
 
     def _setup_ui(self) -> None:
+        # WHY: operations 리스트로 버튼과 핸들러를 쌍으로 관리 — 버튼 추가 시 한 줄만 수정
         layout = QVBoxLayout(self)
         layout.setContentsMargins(60, 40, 60, 40)
         layout.setSpacing(14)
@@ -57,9 +71,12 @@ class AdminMenuScreen(QWidget):
         layout.addWidget(btn_back)
 
     def refresh(self) -> None:
+        # WHY: 화면 진입 시 이전 작업의 상태 메시지가 잔류하지 않도록 초기화
         self._status_label.setText("")
 
     def _toggle_product(self) -> None:
+        # WHY: 변경 전 QMessageBox.question으로 2차 확인 — 실수로 상품을 끄는 상황 방어
+        # 호출처: "상품 ON/OFF" 버튼
         ctrl = self._window.controller
         dlg = _ToggleProductDialog(ctrl.products, self)
         if dlg.exec() == QDialog.DialogCode.Accepted:
@@ -77,6 +94,8 @@ class AdminMenuScreen(QWidget):
                 self._status_label.setText(f"변경 완료: {name} → {state}")
 
     def _replenish_ingredient(self) -> None:
+        # WHY: 보충 실패(재고 초과 등)는 컨트롤러 예외로 전달 — 여기서 경고 메시지로 표시
+        # 호출처: "재료 재고 보충" 버튼
         ctrl = self._window.controller
         dlg = _ReplenishDialog(list(ctrl.ingredients.values()), self)
         if dlg.exec() == QDialog.DialogCode.Accepted:
@@ -90,6 +109,7 @@ class AdminMenuScreen(QWidget):
                 QMessageBox.warning(self, "보충 실패", str(e))
 
     def _show_stock(self) -> None:
+        # WHY: 텍스트 막대 그래프(█)로 재고 비율을 직관적으로 표시 — 별도 위젯 없이 QMessageBox 활용
         ctrl = self._window.controller
         lines = ["[ 재료 재고 현황 ]\n"]
         for ing in ctrl.ingredients.values():
@@ -99,6 +119,7 @@ class AdminMenuScreen(QWidget):
         QMessageBox.information(self, "재고 현황", "\n".join(lines))
 
     def _show_cash(self) -> None:
+        # change_reserve는 window에서 직접 참조 — 컨트롤러 래퍼가 없는 단순 조회
         reserve = self._window.change_reserve
         total = reserve.get_total()
         lines = [f"현금 보유량: {total:,}원\n"]
@@ -107,6 +128,8 @@ class AdminMenuScreen(QWidget):
         QMessageBox.information(self, "현금 보유량", "\n".join(lines))
 
     def _add_cash(self) -> None:
+        # WHY: add_cash 후 즉시 data_manager.save_change_reserve()로 영속화 — 전원 차단 대비
+        # 경계: reserve.reserve는 int key → JSON 저장 시 str 키로 변환 필요
         dlg = _AddCashDialog(self)
         if dlg.exec() == QDialog.DialogCode.Accepted:
             denomination, count = dlg.result_data
@@ -121,6 +144,8 @@ class AdminMenuScreen(QWidget):
             )
 
     def _change_password(self) -> None:
+        # WHY: hash_password를 지연 import — password_utils 의존성을 최소 범위로 제한
+        #      admin_change_password()가 메모리(controller)와 디스크(JSON)를 동시에 갱신한다
         from app.password_utils import hash_password
         dlg = _ChangePasswordDialog(self)
         if dlg.exec() == QDialog.DialogCode.Accepted and dlg.result_data:
@@ -129,6 +154,7 @@ class AdminMenuScreen(QWidget):
             self._status_label.setText("비밀번호가 변경되었습니다.")
 
     def _shutdown(self) -> None:
+        # WHY: sys.exit(0)은 QApplication 이벤트 루프도 종료 — 저장 완료 후 호출 필요
         reply = QMessageBox.question(
             self, "종료 확인", "키오스크를 종료하시겠습니까?",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
@@ -138,6 +164,7 @@ class AdminMenuScreen(QWidget):
 
 
 class _ToggleProductDialog(QDialog):
+    # 상품 선택 + 판매 상태 선택 다이얼로그. result_data = (product_id, bool)
     def __init__(self, products: list, parent=None) -> None:
         super().__init__(parent)
         self.setWindowTitle("상품 ON/OFF")
@@ -168,11 +195,13 @@ class _ToggleProductDialog(QDialog):
         layout.addLayout(btn_row)
 
     def _accept_data(self) -> None:
+        # (product_id, is_available) 튜플로 저장 후 accept
         self.result_data = (self._combo.currentData(), self._state_combo.currentData())
         self.accept()
 
 
 class _ReplenishDialog(QDialog):
+    # 재료 선택 + 보충 수량 입력 다이얼로그. result_data = (ingredient_id, amount)
     def __init__(self, ingredients: list, parent=None) -> None:
         super().__init__(parent)
         self.setWindowTitle("재료 보충")
@@ -211,6 +240,7 @@ class _ReplenishDialog(QDialog):
 
 
 class _ChangePasswordDialog(QDialog):
+    # 새 비밀번호 입력 다이얼로그. result_data = 입력된 평문 비밀번호(strip 적용)
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
         self.setWindowTitle("비밀번호 변경")
@@ -240,6 +270,7 @@ class _ChangePasswordDialog(QDialog):
 
 
 class _AddCashDialog(QDialog):
+    # 권종 선택 + 추가 장수 입력 다이얼로그. result_data = (denomination, count)
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
         self.setWindowTitle("현금 추가")
