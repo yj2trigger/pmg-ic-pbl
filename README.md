@@ -157,9 +157,64 @@ classDiagram
     CashPayment --> ChangeReserve : uses
 ```
 
-## 시퀀스 다이어그램 — 현금 결제 전체 흐름
+## 시퀀스 다이어그램 — 의도한 아키텍처
 
-> 실제 코드 기준. ⚠️ 표시는 KioskController를 경유하지 않는 리팩터링 대상 경로.
+```mermaid
+sequenceDiagram
+    actor User
+    participant GUI
+    participant Controller as KioskController
+    participant Cart
+    participant CP as CashPayment
+    participant CR as ChangeReserve
+    participant DM as DataManager
+ 
+    note over User,DM: ① 상품 선택 & 장바구니 추가
+    User->>GUI: 상품/옵션 선택 후 [담기] 클릭
+    GUI->>Controller: add_to_cart(product, options, qty)
+    Controller->>Cart: add_item(item, ingredients)
+    Cart-->>Controller: 재고 차감 완료
+    Controller-->>GUI: 장바구니 업데이트
+ 
+    note over User,DM: ② 결제 방법 선택 — 현금
+    User->>GUI: [현금 결제] 버튼 클릭
+    GUI->>Controller: start_cash_payment()
+    Controller->>CP: CashPayment(amount, change_reserve) 생성
+    Controller-->>GUI: CashPaymentScreen 표시
+ 
+    note over User,DM: ③ 지폐 투입
+    User->>GUI: 지폐 투입 (예: 10,000원)
+    GUI->>Controller: insert_cash(denomination=10000)
+    Controller->>CP: insert(10000)
+    CP-->>Controller: inserted_amount 반환
+    Controller-->>GUI: 투입 금액 표시 갱신
+ 
+    note over User,DM: ④ 결제 완료 처리
+    User->>GUI: [결제 완료] 버튼 클릭
+    GUI->>Controller: process_cash_payment()
+    Controller->>CP: process()
+    CP->>CR: add_cash(denom, count)
+    CP->>CR: dispense(change_amount)
+    CR-->>CP: {권종: 장수} 반환
+    CP-->>Controller: change_breakdown 반환
+    Controller->>DM: save_ingredients()
+    Controller->>DM: save_change_reserve()
+    DM-->>Controller: 저장 완료
+ 
+    note over User,DM: ⑤ 영수증 출력
+    Controller->>GUI: ReceiptScreen(change_breakdown)
+    GUI-->>User: 영수증 + 잔돈 내역 표시
+ 
+    note over User,DM: ⑥ 초기화
+    Controller->>Cart: items = []
+    GUI-->>User: IdleScreen으로 복귀
+```
+
+---
+
+## 시퀀스 다이어그램 — 실제 코드 기준
+
+> ⚠️ 표시는 KioskController를 경유하지 않는 리팩터링 대상 경로.
 
 ```mermaid
 sequenceDiagram
