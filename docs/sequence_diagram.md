@@ -13,71 +13,59 @@ sequenceDiagram
     participant CR as ChangeReserve
     participant DM as DataManager
 
-    rect rgb(30, 50, 70)
-        Note over User,DM: ① 상품 선택 & 장바구니 추가
-        User->>GW: 옵션 선택 후 [장바구니에 추가] 클릭
-        GW->>KC: add_to_cart(product, options, qty)
-        KC->>Cart: add_item(item, ingredients)
-        Cart->>Cart: deduct() — 재고 즉시 차감
-        Cart-->>KC: 완료
-        KC->>DM: save_ingredients()
-        KC-->>GW: go_to_main_menu()
-    end
+    Note over User,DM: ① 상품 선택 & 장바구니 추가
+    User->>GW: 옵션 선택 후 [장바구니에 추가] 클릭
+    GW->>KC: add_to_cart(product, options, qty)
+    KC->>Cart: add_item(item, ingredients)
+    Cart->>Cart: deduct() — 재고 즉시 차감
+    Cart-->>KC: 완료
+    KC->>DM: save_ingredients()
+    KC-->>GW: go_to_main_menu()
 
-    rect rgb(30, 50, 70)
-        Note over User,DM: ② 현금 결제 선택
-        User->>GW: [현금 결제] 클릭
-        Note over GW: ⚠️ KioskController 미경유 — 리팩터링 대상
-        GW->>CP: new CashPayment(cart.get_subtotal(), change_reserve)
-        GW->>CS: refresh()
-        GW-->>User: CashPaymentScreen 표시
-    end
+    Note over User,DM: ② 현금 결제 선택
+    User->>GW: [현금 결제] 클릭
+    Note over GW: ⚠️ KioskController 미경유 — 리팩터링 대상
+    GW->>CP: new CashPayment(cart.get_subtotal(), change_reserve)
+    GW->>CS: refresh()
+    GW-->>User: CashPaymentScreen 표시
 
-    rect rgb(30, 50, 70)
-        Note over User,DM: ③ 지폐 투입
-        User->>CS: 권종 버튼 클릭 (예: 10,000원)
-        Note over CS: ⚠️ KioskController 미경유 — 리팩터링 대상
-        CS->>CP: insert(denomination)
-        CP-->>CS: inserted_amount
-        CS-->>User: 투입 금액 표시 갱신
-    end
+    Note over User,DM: ③ 지폐 투입
+    User->>CS: 권종 버튼 클릭 (예: 10,000원)
+    Note over CS: ⚠️ KioskController 미경유 — 리팩터링 대상
+    CS->>CP: insert(denomination)
+    CP-->>CS: inserted_amount
+    CS-->>User: 투입 금액 표시 갱신
 
-    rect rgb(30, 50, 70)
-        Note over User,DM: ④ 결제 완료 처리
-        User->>CS: [결제 완료] 클릭
-        Note over CS: ⚠️ KioskController 미경유 — 리팩터링 대상
-        CS->>CP: process()
-        loop inserted_bills 권종별
-            CP->>CR: add_cash(denomination, count)
-        end
-        CP->>CR: dispense(change_amount)
-        CR-->>CP: change_breakdown {권종: 장수}
-        CP-->>CS: change_breakdown
-        CS->>Cart: items = [] (직접 접근)
-        CS->>KC: _save_after_payment() ⚠️ private 메서드 직접 호출
-        KC->>DM: save_ingredients(...)
-        KC->>DM: save_change_reserve(...)
-        DM-->>KC: 저장 완료
-        KC-->>CS: 완료
+    Note over User,DM: ④ 결제 완료 처리
+    User->>CS: [결제 완료] 클릭
+    Note over CS: ⚠️ KioskController 미경유 — 리팩터링 대상
+    CS->>CP: process()
+    loop inserted_bills 권종별
+        CP->>CR: add_cash(denomination, count)
     end
+    CP->>CR: dispense(change_amount)
+    CR-->>CP: change_breakdown {권종: 장수}
+    CP-->>CS: change_breakdown
+    CS->>Cart: items = [] (직접 접근)
+    CS->>KC: _save_after_payment() ⚠️ private 메서드 직접 호출
+    KC->>DM: save_ingredients(...)
+    KC->>DM: save_change_reserve(...)
+    DM-->>KC: 저장 완료
+    KC-->>CS: 완료
 
-    rect rgb(30, 50, 70)
-        Note over User,DM: ⑤ 영수증 출력
-        CS->>GW: go_to_receipt(snapshot, final_amount, "현금", change_breakdown)
-        GW-->>User: 영수증 + 잔돈 내역 표시
-    end
+    Note over User,DM: ⑤ 영수증 출력
+    CS->>GW: go_to_receipt(snapshot, final_amount, "현금", change_breakdown)
+    GW-->>User: 영수증 + 잔돈 내역 표시
 
-    rect rgb(30, 50, 70)
-        Note over User,DM: ⑥ 초기화
-        User->>GW: [새 주문 시작]
-        GW->>GW: go_to_idle()
-        alt 장바구니 비어있지 않음
-            GW->>Cart: clear(ingredients)
-            Cart->>Cart: replenish() — 재고 복원
-            GW->>KC: _save_ingredients() ⚠️ private 메서드 직접 호출
-        end
-        GW-->>User: IdleScreen 표시
+    Note over User,DM: ⑥ 초기화
+    User->>GW: [새 주문 시작]
+    GW->>GW: go_to_idle()
+    alt 장바구니 비어있지 않음
+        GW->>Cart: clear(ingredients)
+        Cart->>Cart: replenish() — 재고 복원
+        GW->>KC: _save_ingredients() ⚠️ private 메서드 직접 호출
     end
+    GW-->>User: IdleScreen 표시
 ```
 
 ## 아키텍처 메모
