@@ -193,7 +193,6 @@ sequenceDiagram
     User->>GUI: [결제 완료] 버튼 클릭
     GUI->>Controller: process_cash_payment()
     Controller->>CP: process()
-    note over CP,CR: 버그 수정 (98770e0):<br/>투입 지폐를 reserve에 먼저 추가해야<br/>잔돈 계산이 정확함
     CP->>CR: add_cash(denom, count)
     CP->>CR: dispense(change_amount)
     CR-->>CP: {권종: 장수} 반환
