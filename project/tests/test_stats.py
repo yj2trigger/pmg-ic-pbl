@@ -6,7 +6,7 @@ from app.option import Option
 from app.stats import Statistics
 
 
-def _item(product_type: str, quantity: int, ing_dic: dict = {}) -> OrderItem:
+def _item(product_type: str, quantity: int, ing_dic: dict | None = None) -> OrderItem:
     product = IceCreamProduct("p1", "아이스크림", 3000, True, product_type)
     opts = {"opt": Option("o1", "옵션", 0, ing_dic)} if ing_dic else {}
     return OrderItem(product, opts, quantity)
