@@ -153,6 +153,10 @@ class CashPayment(Payment):
     def can_complete(self) -> bool:
         # 투입 금액이 결제 금액 이상인지 확인한다.
         # CashPaymentScreen._update_status()에서 "결제 완료" 버튼 활성화 여부를 결정한다.
+        # 잔돈 가능 여부(can_make_change)는 여기서 확인하지 않는다.
+        # 이유: 실제 키오스크에서 사용자가 이미 돈을 투입 중인 상황에서
+        #   물리적으로 투입을 막는 것은 불가능하다. 잔돈 부족은 process() 시점에
+        #   InsufficientChangeException으로 처리하고 투입금을 환불한다.
         return self.inserted_amount >= self.amount
 
     def get_change_amount(self) -> int:
